@@ -1,4 +1,4 @@
-![](images/sspc-sesnsp-medium.png)
+![](images/sspc-sesnsp-small.png)
 
 # Proyectos de la Subdireccion
 
@@ -10,12 +10,12 @@
 
 # Contacto
 
-**Jesus Lopez Monroy**
+**Jesús López M**
 <br>
 *Subdirector de Area*
 
-America 300, Piso 5, Col. Los Reyes,
-Coyoacan, C.P. 04330, CdMx
+America 300, Piso 5, Los Reyes, Coyoacan,   
+04330, CdMx
 <br>
 jesus.lopez@sspc.gob.mx
 <br>
