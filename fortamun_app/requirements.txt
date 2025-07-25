@@ -2,5 +2,5 @@ streamlit
 numpy
 pandas
 polars
-zipfile
-PIL
+fastexcel
+pillow
