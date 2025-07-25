@@ -3,7 +3,6 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import polars as pl
-import duckdb as db
 import io
 import zipfile
 from PIL import Image
