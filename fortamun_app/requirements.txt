@@ -1,0 +1,7 @@
+streamlit
+numpy
+pandas as pd
+polars as pl
+io
+zipfile
+PIL
