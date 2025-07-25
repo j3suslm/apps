@@ -2,6 +2,5 @@ streamlit
 numpy
 pandas
 polars
-io
 zipfile
 PIL
