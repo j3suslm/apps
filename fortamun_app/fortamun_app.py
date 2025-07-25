@@ -1,5 +1,4 @@
 # libraries
-import streamlit_authenticator as stauth
 import streamlit as st
 import numpy as np
 import pandas as pd
