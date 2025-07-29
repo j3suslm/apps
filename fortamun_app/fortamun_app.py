@@ -41,16 +41,16 @@ def main():
     # paso 1
     st.markdown("<h3><span style='color: #bc955c;'>Sube el archivo</span></h3>",
         unsafe_allow_html=True)
+    #st.markdown('[Template](https://sspcgob-my.sharepoint.com/:x:/g/personal/jesus_lopez_sspc_gob_mx/EdZatFiVWNhFrvmpiaPE0EIBW8ReufeeDIRdpUZoEmbaoA?e=KUx6mz)')
     
-
     # sidebar image and text
     st.sidebar.image('sesnsp.png')
     st.sidebar.caption("Dirección General de Planeación")
     st.sidebar.markdown('''
         # Instrucciones   
-        - Sube al archivo Excel
+        - Sube el archivo Excel
         - Calcula los 247 municipios
-        - Descarga las resultados
+        - Descarga los resultados
     ''')
     st.sidebar.write('')
     st.sidebar.caption("JLM © 2025")
@@ -79,13 +79,14 @@ def main():
             data = data.rename({
                         'CLAVE': 'Clave',
                         'NOM_ENT': 'Estado',
+                        'CVE_MUN': 'Clave_mun',
                         'NOM_MUN': 'Mun',
                         'ASIGNACIÓN FORTAMUN ESTATAL': 'Asignacion_estatal',
                         'POB_TOTAL': 'Pob',
                         'TOTAL DE VIVIENDAS HABITADAS': 'Viviendas',
-                        'Municipios que informaron haber destinado recursos del FORTAMUN a la atención de necesidades directamente vinculadas con la seguridad pública. (E.P. 2025) CRITERIO II': 'seg_pub',
+                        'Municipios que informaron haber destinado recursos del FORTAMUN a la atención de necesidades directamente vinculadas con la seguridad pública': 'seg_pub',
                         'Asignación municipal (Gacetas estatales)': 'Asignacion_municipal',
-                        'INCIDENCIA DELICTIVA DE ALTO IMPACTO JUN2024-MAY2025': 'Incidencia_delictiva',
+                        'INCIDENCIA DELICTIVA DE ALTO IMPACTO': 'Incidencia_delictiva',
                         '56 Municipios prioritarios': 'prioritarios',
                     }).with_columns(
                         (pl.col('Estado') + ', ' + pl.col('Mun')).alias('municipio'),
@@ -175,7 +176,7 @@ def main():
             num_municipios = municipios.shape[0]
 
             # Display feedback based on the number of municipalities
-            if 246 < num_municipios < 248:
+            if num_municipios == 247:
                 st.success(f'🎉 ¡Felicidades! La muestra contiene **{num_municipios}** municipios')
             elif num_municipios <= 246:
                 st.info(f'El resultado contiene **{num_municipios}** municipios. Captura un número mayor en el slider para aumentar la muestra.')
@@ -190,7 +191,7 @@ def main():
             # new dataframe results
             # resultados listado 247 municipios
             resultados = (
-                municipios.select(['Clave','Estado','Mun','Pob'])
+                municipios.select(['Clave','Estado','Clave_mun','Mun','Pob'])
                 .rename({
                     'Estado':'Entidad Federativa',
                     'Mun':'Municipio',
