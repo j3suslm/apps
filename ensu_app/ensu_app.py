@@ -1,11 +1,6 @@
 # libraries
-import numpy as np
-import pandas as pd
-import polars as pl
-import plotly.express as px
-from plotnine import *
-from PIL import Image
 import streamlit as st
+from PIL import Image
 import os
 
 
