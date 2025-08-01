@@ -1,4 +1,4 @@
-![](images/sspc-sesnsp-small.png)
+![](ensu_app/sspc-sesnsp-small.png)
 
 # Proyectos
 
