@@ -13,8 +13,12 @@ def main():
     Función principal de la app para subir archivo, transformar datos y descargar resultados.
     """
     
+    # blog home link
+    # blog home link
+    st.markdown('<a href="https://tinyurl.com/sesnsp-dgp-blog" target="_self">Home</a>', unsafe_allow_html=True)
+
     # load image
-    im = Image.open('sspc-sesnsp-small.png')
+    im = Image.open('logo.png')
     # add image
     st.set_page_config(page_title="Fortamun App", page_icon = im, layout='centered')
     
@@ -28,9 +32,9 @@ def main():
     st.markdown(hide_default_format, unsafe_allow_html=True)
 
     # set image
-    st.image('https://sfpya.edomexico.gob.mx/participaciones/imagenes/FORTAMUN.png', width=200)
+    #st.image('https://sfpya.edomexico.gob.mx/participaciones/imagenes/FORTAMUN.png', width=200)
     # set title and subtitle
-    st.markdown("<h1><span style='color: #691c32;'>Muestra Municipios Beneficiados</span></h1>",
+    st.markdown("<h1><span style='color: #691c32;'>Fortamun Municipios Beneficiados</span></h1>",
         unsafe_allow_html=True)
     #st.write('Cálculo de la muestra del 10%')
     
@@ -158,7 +162,7 @@ def main():
             
             # paso 2
             # info widget
-            st.markdown("<h3><span style='color: #bc955c;'>Cálculo de los 247 municipios</span></h3>",
+            st.markdown("<h3><span style='color: #bc955c;'>Cálcula la muestra</span></h3>",
                 unsafe_allow_html=True)
             #st.write("Selecciona un número para ajustar el `parametro` y obtener los 247 municipios requeridos.")
             # Create a slider for the 'parameter'
@@ -185,7 +189,7 @@ def main():
 
             # paso 3
             # descargar archivo municipios
-            st.markdown("<h3><span style='color: #bc955c;'>Descarga de resultados</span></h3>",
+            st.markdown("<h3><span style='color: #bc955c;'>Descarga los resultados</span></h3>",
                 unsafe_allow_html=True)
             
             # new dataframe results
@@ -243,7 +247,7 @@ def main():
         
         
     # contacto
-    st.caption('Jesús López M.')
+    st.caption('Jesús LM')
 
 
 if __name__ == "__main__":
