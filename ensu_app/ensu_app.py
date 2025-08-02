@@ -7,11 +7,13 @@ import os
 # core script
 def main():
     
+    # blog home link
+    st.markdown('<a href="https://tinyurl.com/sesnsp-dgp-blog" target="_self">Home</a>', unsafe_allow_html=True)
+
     # load image
-    im = Image.open('sspc-sesnsp-small.png')
+    im = Image.open('logo.png')
     # add image
     st.set_page_config(page_title="ENSU", page_icon = im, layout='centered')
-    
 
     # hide streamlit logo and footer
     hide_default_format = """
@@ -24,13 +26,13 @@ def main():
 
 
     # set image
-    st.image('https://www.primeraplanadigital.com.mx/wp-content/uploads/2019/06/5-inseguridad-1-750x450.jpg', width=200)
+    #st.image('sspc_sin_fondo.png', width=200)
     # set title and subtitle
     st.markdown("<h1><span style='color: #691c32;'>Percepción de Confianza en Policías Estatales</span></h1>",
         unsafe_allow_html=True)
     # author, date
-    st.caption('Autor: Jesús LM')
-    st.caption('Fecha de publicación: Ago, 2025')
+    st.caption('Jesús LM')
+    st.caption('Agosto 01, 2025')
     
 
     # sidebar image and text
@@ -41,9 +43,9 @@ def main():
     st.sidebar.write('''
         La confianza de la ciudadanía en sus cuerpos policiales es un pilar fundamental para la seguridad y la
         gobernabilidad en cualquier nación.
-        En México, esta percepción es monitoreada de cerca por el Instituto Nacional de Estadística y Geografía
-        (INEGI) a través de encuestas como la Encuesta Nacional de Seguridad Pública Urbana (ENSU), cuyos
-        resultados de 2025 ofrecen una valiosa fotografía sobre el sentir de la población respecto al desempeño y
+        En México, esta percepción es monitoreada por el Instituto Nacional de Estadística y Geografía
+        (INEGI) a través de la Encuesta Nacional de Seguridad Pública Urbana (ENSU), cuyos
+        resultados ofrecen una fotografía sobre el sentir de la población respecto al desempeño y
         la fiabilidad de la policía estatal.
     ''')
     st.sidebar.write('')
@@ -61,7 +63,8 @@ def main():
 
     # contents
     # --- section I ---
-    st.markdown('### Evolución Trimestral por Entidad Federativa')
+    st.markdown("<h3><span style='color: #bc955c;'>Evolución Trimestral por Entidad Federativa</span></h3>",
+                unsafe_allow_html=True)
     
     # --- Define a dictionary of images ---
     line_images = {
@@ -98,22 +101,10 @@ def main():
         "Yucatán": "figures_new/Yucatán.svg",
         "Zacatecas": "figures_new/Zacatecas.svg",
     }
-    
-    # Apply custom CSS to modify the selectbox width
-    st.markdown(
-    """
-        <style>
-        .stSelectbox > div > div {
-            width: 240px;  /* Adjust this value to your desired width */
-        }
-        </style>
-        """,
-    unsafe_allow_html=True
-    )
 
     # Create a selectbox using the keys from the 'images' dictionary
     selected_line_image = st.selectbox(
-        "Selecciona un trimestre",
+        "Selecciona una Entidad Federativa",
         list(line_images.keys()),
     )
 
@@ -127,52 +118,53 @@ def main():
 
 
     # --- section II ---
+    st.write('')
     #st.markdown("---")
-    st.markdown('### Comparativo por Entidad Federativa')
-
+    st.markdown("<h3><span style='color: #bc955c;'>Comparativo por Entidad Federativa</span></h3>",
+                unsafe_allow_html=True)
     # --- Define a dictionary of images ---
-    bar_images = {
-        "2015-03": "figures_new/2015-03.svg",
-        "2015-06": "figures_new/2015-06.svg",
-        "2015-09": "figures_new/2015-09.svg",
-        "2015-12": "figures_new/2015-12.svg",
-        "2016-03": "figures_new/2016-03.svg",
-        "2016-06": "figures_new/2016-06.svg",
-        "2016-09": "figures_new/2016-09.svg",
-        "2016-12": "figures_new/2016-12.svg",
-        "2017-03": "figures_new/2017-03.svg",
-        "2017-06": "figures_new/2017-06.svg",
-        "2017-09": "figures_new/2017-09.svg",
-        "2017-12": "figures_new/2017-12.svg",
-        "2018-03": "figures_new/2018-03.svg",
-        "2018-06": "figures_new/2018-06.svg",
-        "2018-09": "figures_new/2018-09.svg",
-        "2018-12": "figures_new/2018-12.svg",
-        "2019-03": "figures_new/2019-03.svg",
-        "2019-06": "figures_new/2019-06.svg",
-        "2019-09": "figures_new/2019-09.svg",
-        "2019-12": "figures_new/2019-12.svg",
-        "2020-03": "figures_new/2020-03.svg",
-        "2020-06": "figures_new/2020-06.svg",
-        "2020-12": "figures_new/2020-12.svg",
-        "2021-03": "figures_new/2021-03.svg",
-        "2021-06": "figures_new/2021-06.svg",
-        "2021-09": "figures_new/2021-09.svg",
-        "2021-12": "figures_new/2021-12.svg",
-        "2022-03": "figures_new/2022-03.svg",
-        "2022-06": "figures_new/2022-06.svg",
-        "2022-09": "figures_new/2022-09.svg",
-        "2022-12": "figures_new/2022-12.svg",
-        "2023-03": "figures_new/2023-03.svg",
-        "2023-06": "figures_new/2023-06.svg",
-        "2023-09": "figures_new/2023-09.svg",
-        "2023-12": "figures_new/2023-12.svg",
-        "2024-03": "figures_new/2024-03.svg",
-        "2024-06": "figures_new/2024-06.svg",
-        "2024-09": "figures_new/2024-09.svg",
-        "2024-12": "figures_new/2024-12.svg",
-        "2025-03": "figures_new/2025-03.svg",
+    bar_images = {        
         "2025-06": "figures_new/2025-06.svg",
+        "2025-03": "figures_new/2025-03.svg",
+        "2024-12": "figures_new/2024-12.svg",
+        "2024-09": "figures_new/2024-09.svg",
+        "2024-06": "figures_new/2024-06.svg",
+        "2024-03": "figures_new/2024-03.svg",
+        "2023-12": "figures_new/2023-12.svg",
+        "2023-09": "figures_new/2023-09.svg",
+        "2023-06": "figures_new/2023-06.svg",
+        "2023-03": "figures_new/2023-03.svg",
+        "2022-12": "figures_new/2022-12.svg",
+        "2022-09": "figures_new/2022-09.svg",
+        "2022-06": "figures_new/2022-06.svg",
+        "2022-03": "figures_new/2022-03.svg",
+        "2021-12": "figures_new/2021-12.svg",
+        "2021-09": "figures_new/2021-09.svg",
+        "2021-06": "figures_new/2021-06.svg",
+        "2021-03": "figures_new/2021-03.svg",
+        "2020-12": "figures_new/2020-12.svg",
+        "2020-06": "figures_new/2020-06.svg",
+        "2020-03": "figures_new/2020-03.svg",
+        "2019-12": "figures_new/2019-12.svg",
+        "2019-09": "figures_new/2019-09.svg",
+        "2019-06": "figures_new/2019-06.svg",
+        "2019-03": "figures_new/2019-03.svg",
+        "2018-12": "figures_new/2018-12.svg",
+        "2018-09": "figures_new/2018-09.svg",
+        "2018-06": "figures_new/2018-06.svg",
+        "2018-03": "figures_new/2018-03.svg",
+        "2017-12": "figures_new/2017-12.svg",
+        "2017-09": "figures_new/2017-09.svg",
+        "2017-06": "figures_new/2017-06.svg",
+        "2017-03": "figures_new/2017-03.svg",
+        "2016-12": "figures_new/2016-12.svg",
+        "2016-09": "figures_new/2016-09.svg",
+        "2016-06": "figures_new/2016-06.svg",
+        "2016-03": "figures_new/2016-03.svg",
+        "2015-12": "figures_new/2015-12.svg",
+        "2015-09": "figures_new/2015-09.svg",
+        "2015-06": "figures_new/2015-06.svg",
+        "2015-03": "figures_new/2015-03.svg",        
     }
     
     
