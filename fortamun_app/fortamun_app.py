@@ -12,7 +12,11 @@ def main():
     """
     Función principal de la app para subir archivo, transformar datos y descargar resultados.
     """
-    
+
+    password_guess = st.text_input('What is the Password?')
+    if password_guess != password:
+        st.stop()
+
     # blog home link
     # blog home link
     st.markdown('<a href="https://tinyurl.com/sesnsp-dgp-blog" target="_self">Home</a>', unsafe_allow_html=True)
