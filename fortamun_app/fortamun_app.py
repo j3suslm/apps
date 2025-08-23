@@ -16,8 +16,9 @@ def main():
     Función principal de la app para subir archivo, transformar datos y descargar resultados.
     """
 
+    # this code block is used to authenticate by password
     password = os.getenv('password')
-    password_guess = st.text_input('What is the Password?')
+    password_guess = st.text_input('¡Escribe el password para acceder!')
     if password_guess != password:
         st.stop()
 
