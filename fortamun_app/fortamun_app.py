@@ -18,9 +18,24 @@ def main():
 
     # this code block is used to authenticate by password
     password = os.getenv('password')
-    password_guess = st.text_input('¡Escribe el password para acceder!')
-    if password_guess != password:
-        st.stop()
+    # Initialize session state if not already set
+    if 'password_correct' not in st.session_state:
+        st.session_state.password_correct = False
+
+    # If password is not correct, ask for it
+    if not st.session_state.password_correct:
+        password_guess = st.text_input('¡Escribe el password para acceder!')
+        
+        if password_guess == password:
+            st.session_state.password_correct = True
+            st.rerun()
+        else:
+            st.error("Incorrect password")
+            st.stop()
+
+    # This code runs only when the password is correct
+    st.write("¡Acceso concedido!")
+
 
     # blog home link
     # blog home link
