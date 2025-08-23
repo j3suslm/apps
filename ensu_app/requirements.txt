@@ -1,1 +1,7 @@
 streamlit
+numpy
+pandas
+polars
+fastexcel
+pillow
+python-dotenv
