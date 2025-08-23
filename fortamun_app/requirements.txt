@@ -4,3 +4,4 @@ pandas
 polars
 fastexcel
 pillow
+python-dotenv
