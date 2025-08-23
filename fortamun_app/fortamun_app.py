@@ -6,6 +6,9 @@ import polars as pl
 import io
 import zipfile
 from PIL import Image
+import os
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 # core code
 def main():
@@ -13,6 +16,7 @@ def main():
     Función principal de la app para subir archivo, transformar datos y descargar resultados.
     """
 
+    password = os.getenv('password')
     password_guess = st.text_input('What is the Password?')
     if password_guess != password:
         st.stop()
