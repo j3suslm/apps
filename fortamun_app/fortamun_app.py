@@ -30,11 +30,10 @@ def main():
             st.session_state.password_correct = True
             st.rerun()
         else:
-            st.error("Incorrect password")
             st.stop()
 
     # This code runs only when the password is correct
-    st.write("¡Acceso concedido!")
+    st.success('¡Acceso concedido!')
 
 
     # blog home link
