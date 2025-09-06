@@ -1,5 +1,5 @@
-![](ensu_app/sspc-sesnsp-small.png)
+<img src="https://www.datos.gob.mx/uploads/group/2025-03-10-202801.641179LogoSESNSPpnghorizontal.png" style="width:300px;">
 
-# Apps
+# Public Security Apps
 
-This is a repository oriented to save Public Security apps.
+This repository contains Public Security projects from a data science approach by using tools like Python, Quarto, Shiny, Streamlit, Plotly and Plotnine, among others.
