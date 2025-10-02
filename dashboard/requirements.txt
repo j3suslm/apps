@@ -1,0 +1,8 @@
+numpy
+pandas
+polars
+seaborn
+shiny
+plotly
+pathlib
+

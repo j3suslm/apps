@@ -18,7 +18,6 @@ theme: _brand.yml
 import seaborn as sns
 from shiny import reactive
 from shiny.express import render, ui
-from IPython.display import display, Markdown
 ```
 
 # Bienvenida
