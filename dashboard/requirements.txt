@@ -5,4 +5,5 @@ seaborn
 shiny
 plotly
 pathlib
+jupyter
 
