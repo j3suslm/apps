@@ -1,0 +1,422 @@
+---
+title: "SESNSP"
+format:
+  dashboard:
+    logo: "images/sesnsp.png"
+    logo-href: https://www.gob.mx/sesnsp
+    nav-buttons:
+      - icon: twitter-x
+        href: https://x.com/SESNSP
+lang: es
+server: shiny
+theme: _brand.yml
+---
+
+```{python}
+# libraries
+#| context: setup
+import seaborn as sns
+from shiny import reactive
+from shiny.express import render, ui
+from IPython.display import display, Markdown
+```
+
+# Bienvenida
+
+::: {.card expandable=false padding="0px" .flow}
+![](images/portada.png)
+:::
+
+
+# Ficha Técnica
+
+## {.sidebar width="230px" collapsible=true}
+
+<p><a href="https://www.gob.mx/sesnsp">
+<img src="sesnsp.png" alt="sesnsp" width="190" height="50">
+</a></p>
+
+```{python}
+ui.input_select('x', 'Entidad Federativa',
+  choices=[
+    'Aguascalientes','Baja California','Baja California Sur','Campeche',
+    'Chiapas','Chihuahua','Ciudad de México','Coahuila',
+    'Colima','Durango','México','Guanajuato',
+    'Guerrero','Hidalgo','Jalisco','Michoacán',
+    'Morelos','Nayarit','Nuevo León','Oaxaca',
+    'Puebla','Querétaro','Quintana Roo','San Luis Potosí',
+    'Sinaloa','Sonora','Tabasco','Tamaulipas',
+    'Tlaxcala','Veracruz','Yucatán','Zacatecas',
+    ]
+  )
+```
+
+<hr> 
+
+::: {.card title="About" fill="false"}
+[Blog de la Dirección General de Planeación](https://j3sus.quarto.pub/sesnsp)
+:::
+
+
+## Row {height=15%}
+
+### Row {height=15%}
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Ranking"
+#| color: primary
+dict(
+  value = "29"
+)
+```
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Homicidios"
+dict(
+  color = "primary",
+  value = "95"
+)
+```
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Areas mínimas"
+dict(
+  color = "primary",
+  value = " 5 de 12"
+)
+```
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Academias"
+#| color: primary
+dict(
+  value = "2"
+)
+```
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Prestaciones"
+dict(
+  color = "primary",
+  value = "6 de 12"
+)
+```
+
+#### Column
+
+```{python}
+#| content: valuebox
+#| title: "Tasa Policial"
+dict(
+  color = "primary",
+  value = "6,546"
+)
+```
+
+
+### Row {height=43% expandable=false}
+
+#### Fondos {.tabset}
+
+##### FASP
+
+::: {.card expandable="false"}
+
+|Fondo|Importe|Porcentaje|
+|---|---|---|
+|FASP|65,000,000|68%|
+|FOFISP|42,000,000|42%|
+FORTAMUN|12,000,000|6%|
+
+:::
+
+##### Presupuesto
+
+::: {.card expandable=false}
+
+|Tipo|Importe|
+|---|---|
+|Presupuesto per cápita|12,000|
+|Presupuesto por Policía|36,000|
+
+:::
+
+#### Dignificacion {.tabset}
+
+##### Prestaciones
+
+::: {.card expandable=false}
+
+|Prestación|
+|---|
+|Seguro de Gastos Médicos|
+|Seguro por muerte|
+
+:::
+
+##### Escolaridad
+
+::: {.card expandable=false}
+
+|Nivel de escolaridad|Hombres|Mujeres|Total|
+|---|---|---|---|
+|Posgrado|25|23|48|
+|Licenciatura|32|2|34|
+|Bachillerato|112|41|153|
+|Secundaria|80|65|145|
+|Primaria|52|34|86|
+
+:::
+
+
+### Row {height=42% expandable=false}
+
+#### Formacion {.tabset}
+
+##### Academias 
+
+::: {.card expandable=false}
+
+|Nombre|Calificacion|
+|---|---|
+|Academia Superior|A|
+|Academia Estatal|B|
+
+:::
+
+##### Salarios
+
+::: {.card expandable=false}
+
+|Salario|Real|Conasami|Diferencia|
+|---|---|---|---|
+|Importe|6,500|7,000|-500|
+
+:::
+
+#### Estado de Fuerza {.tabset}
+
+##### Policía por tipo
+
+::: {.card expandable=false}
+
+|Tipo|Hombres|Mujeres|Total|
+|---|---|---|---|
+|Estatal|25|23|48|
+|Proximidad|25|2|14|
+|Investigación|53|3|48|
+|Ministerial|15|11|48|
+
+:::
+
+##### Evaluacion CC
+
+::: {.card expandable=false}
+
+|Hombres|Mujeres|Total|
+|---|---|---|
+|25|23|48|
+
+:::
+
+
+# Nacional
+
+## Row {height=15%}
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Homicidios"
+#| color: primary
+dict(
+  value = 56
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Academias"
+#| color: primary
+dict(
+  value = 25
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Prestaciones"
+dict(
+  color = "primary",
+  value = 16
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Estado de Fuerza"
+#| color: primary
+dict(
+  value = "250,000"
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Policías/1,000 hab"
+dict(
+  color = "primary",
+  value = "1.2"
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Presupuesto"
+dict(
+  color = "primary",
+  value = "65,000,000"
+)
+```
+
+### Column
+
+```{python}
+#| content: valuebox
+#| title: "Salario Promedio"
+dict(
+  color = "primary",
+  value = "15,000"
+)
+```
+
+
+## Row {height=42%}
+
+### Column {.tabset}
+
+#### Prestaciones
+
+::: {.card expandable="false"}
+
+![](images/prestaciones2.svg){width=55%}
+:::
+
+#### Salarios
+
+::: {.card expandable="false"}
+![](images/sueldo.svg){width=55%}
+:::
+
+### Column {.tabset}
+
+#### Subprogramas
+
+::: {.card expandable="false"}
+
+![](images/aportaciones_subprograma.svg){width=55%}
+:::
+
+#### Estado de Fuerza
+
+::: {.card expandable="false"}
+![](images/funciones.svg){width=55%}
+:::
+
+## Row {height=43%}
+
+### Column {.tabset}
+
+#### Monitoreo
+
+::: {.card expandable="false"}
+
+![](images/rfid.svg){width=55%}
+:::
+
+#### Cursos
+
+::: {.card expandable="false"}
+
+![](images/capacitacion_cursos.svg){width=55%}
+
+:::
+
+### Column {.tabset}
+
+#### Salarios
+
+::: {.card expandable="false"}
+
+![](images/salarios_ordenado.svg){width=55%}
+
+:::
+
+#### Mapa
+
+::: {.card expandable="false"}
+
+![](images/aportaciones_federales_por_entidad_mapa.svg){width=55%}
+
+:::
+
+
+# Notas
+
+::: {.card expandable=false padding="10px" .flow}
+
+<h1>Conclusiones</h1>
+
+### Salarios y Prestaciones
+
+**Disparidad Salarial y Desmotivación**. El salario base promedio de la escala básica a menudo se encuentra por debajo del nivel deseable para un desempeño digno y una baja propensión a la corrupción, lo que impacta negativamente en la moral y retención del personal.
+
+**Prestaciones Incompletas o Desiguales**. Existe una cobertura desigual o insuficiente en prestaciones clave como seguridad social, seguro de vida y vivienda, siendo estas áreas críticas para la estabilidad y bienestar del policía.
+
+### Estado de Fuerza y Presupuesto
+
+**Insuficiente Cobertura de Policías por Habitante**. El análisis revela que la ratio de Policías por habitante en diversas jurisdicciones se encuentra por debajo de los estándares nacionales e internacionales recomendados, indicando una potencial sobrecarga laboral para el personal existente y una menor capacidad de respuesta a la demanda de seguridad.
+
+**Presupuesto Restrictivo y Desequilibrado**. El presupuesto asignado a la seguridad pública es, en muchos casos, insuficiente para cubrir las necesidades operativas, de inversión en tecnología y, especialmente, para mejorar las condiciones salariales y de equipamiento. Se observa una concentración de recursos en gasto corriente (salarios básicos) dejando escaso margen para la capacitación, equipamiento moderno y mantenimiento de la infraestructura.
+
+### Tipos de Policías y Jerarquización
+
+**Desbalance en la Especialización**. Existe un predominio de la policía preventiva o de proximidad con una escasez notable de personal especializado en áreas como la inteligencia, investigación cibernética o delitos de alto impacto, lo que limita la capacidad de las instituciones para combatir la criminalidad compleja.
+
+**Estructura de Mando y Jerarquización**. Se identifica que la jerarquización real de las corporaciones a menudo no se alinea con el modelo ideal establecido en la normativa (Ley General del Sistema Nacional de Seguridad Pública), generando rigidez en los ascensos y promociones y afectando la movilidad laboral y el desarrollo de carrera.
+
+### Recomendaciones Generales
+
+**Homologación de Salarios y Prestaciones**. Urge implementar un programa nacional de homologación salarial y de prestaciones mínimas que garantice un ingreso digno y un paquete básico de beneficios para todos los niveles y tipos de policías.
+
+**Fortalecimiento del Estado de Fuerza**. Es imperativo desarrollar estrategias de reclutamiento y retención para aumentar el número de elementos operativos, buscando alcanzar la ratio recomendada de Policías por habitante.
+
+**Reasignación Presupuestal Estratégica**. Se requiere una revisión y reasignación del presupuesto para priorizar la inversión en tecnología, capacitación especializada y equipamiento táctico, sin descuidar el mejoramiento de las condiciones laborales y salariales.
+
+:::
