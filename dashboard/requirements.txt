@@ -6,4 +6,5 @@ shiny
 plotly
 pathlib
 jupyter
+great-tables
 
