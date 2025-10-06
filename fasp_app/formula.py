@@ -1,6 +1,8 @@
+# libraries
 import streamlit as st
 import pandas as pd
 import numpy as np
+import polars as pl
 import plotly.express as px
 from PIL import Image
 
@@ -106,7 +108,7 @@ st.markdown("""
         }
         /* Sidebar background */
         [data-testid=stSidebar] {
-            background-color: #ececec;
+            background-color: #f6f6f6;
             color: #28282b;
         }
         /* Target all text elements within the sidebar (labels, markdown, sliders, etc.) */
@@ -120,15 +122,15 @@ st.markdown("""
 # Sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
 w_gasto = st.sidebar.slider(
-    'Gasto por Habitante (Alto = Bueno)',
+    'Gasto por Habitante (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.40, step=0.05, key='gasto'
 )
 w_policia = st.sidebar.slider(
-    'Policías por 100k (Alto = Bueno)',
+    'Policías por 100k (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='policia'
 )
 w_crimen = st.sidebar.slider(
-    'Tasa de Criminalidad (Alto = Malo)',
+    'Tasa de Criminalidad (Alto=Malo)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
 )
 
@@ -148,10 +150,6 @@ weights = {
     'Crimen': w_crimen
 }
 
-# sidebar caption
-st.sidebar.caption('---')
-st.sidebar.caption("Dirección General de Planeación")
-
 
 # --- Cálculo y Visualización ---
 # Calcular el índice
@@ -159,14 +157,14 @@ df_results = calculate_index(df_original.copy(), weights)
 
 
 # tab layout
-tab1, tab2, tab3 = st.tabs(['Introducción', 'Fórmula', 'Nota metodológica'])
+tab1, tab2, tab3 = st.tabs(['1.Introducción', '2.Fórmula', '3.Nota metodológica'])
 
 with tab1:
     # header
-    st.subheader('Introducción')
+    st.subheader('1. Introducción')
     st.markdown('''
     
-    ##### Antecedentes
+    ##### 1.1 Antecedentes
 
     El Secretariado debe someter a aprobación del Consejo Nacional de Seguridad Pública los criterios para la distribución del FASP.   
     _**Ley de Coordinación Fiscal, artículo 44.**_
@@ -180,7 +178,7 @@ with tab1:
         width=700)
 
     st.markdown('''
-    ##### ¿Cómo funciona esta aplicación?
+    ##### 1.2 ¿Cómo funciona esta aplicación?
     
     Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un Índice de Asignación de Seguridad Pública Normalizado.
     
@@ -192,18 +190,23 @@ with tab1:
     Esto proporciona una base objetiva para discutir y justificar las decisiones de asignación de fondos,
      asegurando que los recursos se dirijan donde son más necesarios o donde generarán el mayor impacto.
 
-    Para mayor información consulta la página:   
+    ##### Referencias
+
     [Lineamientos Generales de Evaluación del Fondo de Aportaciones para la Seguridad Pública (FASP) 2025](https://www.gob.mx/sesnsp/documentos/lineamientos-generales-de-evaluacion-del-fondo-de-aportaciones-para-la-seguridad-publica-fasp-2025?state=published)
+    
+    ---
+
+    *Dirección General de Planeación*
     ''')
 
 
 with tab2:
-    st.header('Fórmula de Asignación')
-    st.subheader("Datos de Entrada")
-    st.markdown("Estos son los datos crudos utilizados en el modelo:")
+    st.header('2. Fórmula de Asignación')
+    st.subheader("2.1 Datos de Entrada")
+    st.markdown("Estos son los datos utilizados en el modelo:")
     st.dataframe(df_original, use_container_width=True)
 
-    st.subheader("Normalización de datos")
+    st.subheader("2.2 Normalización de datos")
     st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
     df_normalized = df_results[['Gasto_norm', 'Policia_norm', 'Crimen_norm']]
     # Renombrar columnas para mejor visualización
@@ -216,7 +219,7 @@ with tab2:
                 })
 
     # Mostrar la tabla final de resultados
-    st.subheader("Resultados")
+    st.subheader("2.3 Resultados")
     st.dataframe(df_results[['Índice Normalizado', 'Índice Final (0-1)']].sort_values(by='Índice Final (0-1)', ascending=False),
                 use_container_width=True,
                 column_config={
@@ -224,7 +227,7 @@ with tab2:
                 })
 
 
-    st.subheader("Asignación Final por Entidad Federativa")
+    st.subheader("2.4 Asignación Final por Entidad Federativa")
 
     # Gráfico de barras interactivo con Plotly
     df_plot = df_results.reset_index()
@@ -250,9 +253,12 @@ with tab2:
 
     st.plotly_chart(fig, use_container_width=True)
 
+    st.markdown('---')
+    st.markdown('*Dirección General de Planeación*')
+
 
 with tab3:
-    st.header('Nota metodológica')
+    st.header('3. Nota metodológica')
     st.markdown("""
     1. **Normalización Min-Max:** Todos los indicadores se escalan al rango [0, 1].
     2. **Inversión:** La 'Tasa de Criminalidad' (una variable negativa) se invierte para que una tasa baja resulte en un valor normalizado alto (cercano a 1).
@@ -260,14 +266,38 @@ with tab3:
     4. **Re-escalado:** El índice final se re-escala de 0 a 1 para facilitar la interpretación del rendimiento relativo.
     """)
 
-    st.subheader('Fórmula del Índice de Asignación')
+    st.subheader('3.1 Fórmula de normalización')
     st.latex(r'''
-    I_j = \sum_{i=1}^{n}( V_{i,j} \times W_i)
-    ''')
-    
-    st.latex(r'''
+    V_{i,j} = \frac{X_{i,j} - X_{i, \min}}{X_{i, \max} - X_{i, \min}}\\
+    \text{ }\\
     \text{donde:}\\
-    I_j = \text{Índice de asignación}\\
-    V_{i,j} = \text{Indicador i}\\
+    \text{ }\\
+    V_{i,j} = \text{Valor normalizado del indicador i para la Entidad Federativa j}\\
+    X_{i,j} = \text{Indicador i de la Entidad Federativa j}\\
+    ''')
+
+    st.subheader('3.2 Fórmula del Índice de Asignación')
+    st.latex(r'''
+    I_j = \sum_{i=1}^{n}( V_{i,j} \times W_i)\\
+    \text{ }\\
+    \text{donde:}\\
+    \text{ }\\
+    I_j = \text{Índice de asignación de fondos para la Entidad Federativa j}\\
+    V_{i,j} = \text{Valor normalizado del indicador i para la Entidad Federativa j}\\
     W_i = \text{Ponderación del indicador i}\\
     ''')
+
+    st.markdown('---')
+    st.markdown('*Dirección General de Planeación*')
+
+    # Inject custom CSS to left-align KaTeX elements
+    st.markdown(
+        """
+        <style>
+        .katex-html {
+            text-align: left;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
