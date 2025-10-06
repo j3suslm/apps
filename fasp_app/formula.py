@@ -80,7 +80,7 @@ im = Image.open('logo.png')
 st.set_page_config(layout="wide", page_title="Fórmula FASP", page_icon=im)
 
 # set title and subtitle
-st.markdown("<h1><span style='color: #691c32;'>Asignación de Fondos FASP para Seguridad Pública</span></h1>",
+st.markdown("<h1><span style='color: #691c32;'>Fórmula para la Asignación FASP</span></h1>",
     unsafe_allow_html=True)
 
 # author, date
@@ -95,23 +95,23 @@ st.sidebar.image('sesnsp.png')
 # ponderadores
 st.markdown(hide_default_format, unsafe_allow_html=True)
 st.sidebar.header("Ponderaciones")
-st.sidebar.markdown("Utiliza los sliders para cambiar la ponderación de cada indicador.")
+
     
 # customize color of sidebar and text
 st.markdown("""
     <style>
         /* 1. Target the main content area background */
         [data-testid="stAppViewBlockContainer"] {
-            background-color: #808080;
+            background-color: #f6f6f6;
         }
         /* Sidebar background */
         [data-testid=stSidebar] {
-            background-color: #691c32;
-            color: #ffff;
+            background-color: #ececec;
+            color: #28282b;
         }
         /* Target all text elements within the sidebar (labels, markdown, sliders, etc.) */
         [data-testid="stSidebar"] * {
-            color: white !important; 
+            color: #28282b !important;
         }
     </style>
     """, unsafe_allow_html=True)
@@ -120,15 +120,15 @@ st.markdown("""
 # Sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
 w_gasto = st.sidebar.slider(
-    'Peso: Gasto por Habitante (Alto = Bueno)',
+    'Gasto por Habitante (Alto = Bueno)',
     min_value=0.0, max_value=1.0, value=0.40, step=0.05, key='gasto'
 )
 w_policia = st.sidebar.slider(
-    'Peso: Policías por 100k (Alto = Bueno)',
+    'Policías por 100k (Alto = Bueno)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='policia'
 )
 w_crimen = st.sidebar.slider(
-    'Peso: Tasa de Criminalidad (Alto = Malo)',
+    'Tasa de Criminalidad (Alto = Malo)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
 )
 
@@ -149,7 +149,7 @@ weights = {
 }
 
 # sidebar caption
-st.sidebar.caption('')
+st.sidebar.caption('---')
 st.sidebar.caption("Dirección General de Planeación")
 
 
@@ -158,94 +158,116 @@ st.sidebar.caption("Dirección General de Planeación")
 df_results = calculate_index(df_original.copy(), weights)
 
 
-# header
-st.subheader('Introducción')
-st.markdown('''
-    ##### Analizando la Asignación de Fondos para Seguridad Pública.
-    
-    La toma de decisiones sobre cómo distribuir los recursos de seguridad pública es uno de los desafíos
-     más complejos que enfrenta cualquier gobierno.
-    Un error en la asignación puede dejar a las comunidades más vulnerables desprotegidas o resultar en
-     un gasto ineficiente.
-    Las decisiones suelen basarse en múltiples factores, como el gasto actual, la densidad policial y,
-     lo más importante, las tasas de criminalidad.
-    
-    Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un
-     Índice de Asignación de Seguridad Pública Normalizado.
-    En lugar de depender de una única métrica, el índice combina datos crudos de diferentes regiones
-     (como el Gasto por Habitante, la cantidad de Policías por 1,000 habitantes y la Tasa de Criminalidad)
-      y los normaliza para hacerlos comparables.
+# tab layout
+tab1, tab2, tab3 = st.tabs(['Introducción', 'Fórmula', 'Nota metodológica'])
 
-    ##### ¿Cómo funciona?
+with tab1:
+    # header
+    st.subheader('Introducción')
+    st.markdown('''
+    
+    ##### Antecedentes
+
+    El Secretariado debe someter a aprobación del Consejo Nacional de Seguridad Pública los criterios para la distribución del FASP.   
+    _**Ley de Coordinación Fiscal, artículo 44.**_
+
+    - En 2020 se realizó el último diseño de los criterios de distribución. 
+    - Las asignaciones subsecuentes aumentaban de manera proporcional al aumento de los recursos del Fondo, con base en el diseño de 2020.
+    ''')
+
+    st.image('antecedentes.png',
+        caption='Categorías de los indicadores comprendidos para el cálculo de asignación.',
+        width=700)
+
+    st.markdown('''
+    ##### ¿Cómo funciona esta aplicación?
+    
+    Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un Índice de Asignación de Seguridad Pública Normalizado.
     
     El corazón de la aplicación es la ponderación.
-    Al usar los controles deslizantes en la barra lateral, se pueden simular diferentes prioridades de
-     política pública.
-    
-    Por ejemplo, se puede asignar un peso mayor al "Gasto por habitante" si el enfoque es recompensar la
-     inversión, o se puede dar más peso a la "Tasa de Criminalidad" si el objetivo principal es dirigir
-      recursos a las zonas con peores resultados.
+    Al usar los controles deslizantes en la barra lateral, se pueden simular diferentes prioridades de política pública.
     
     Al ajustar estos pesos, la aplicación recalcula el índice en tiempo real, permitiéndo ver cómo los
      supuestos de ponderación impactan la clasificación final de las regiones.
     Esto proporciona una base objetiva para discutir y justificar las decisiones de asignación de fondos,
      asegurando que los recursos se dirijan donde son más necesarios o donde generarán el mayor impacto.
-''')
-st.markdown('---')
 
-st.subheader("Datos de Entrada")
-st.markdown("Estos son los datos crudos utilizados en el modelo:")
-st.dataframe(df_original, use_container_width=True)
-
-st.subheader("Normalización de datos")
-st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
-df_normalized = df_results[['Gasto_norm', 'Policia_norm', 'Crimen_norm']]
-# Renombrar columnas para mejor visualización
-df_normalized.columns = ['Gasto_norm (Alto=Bueno)', 'Policia_norm (Alto=Bueno)', 'Crimen_norm (Bajo=Malo -> Invertida)']
-st.dataframe(df_normalized, use_container_width=True,
-            column_config={
-                "Gasto_norm (Alto=Bueno)": st.column_config.ProgressColumn("Gasto_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                "Policia_norm (Alto=Bueno)": st.column_config.ProgressColumn("Policia_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                "Crimen_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Crimen_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0)
-            })
-
-# Mostrar la tabla final de resultados
-st.subheader("Resultados")
-st.dataframe(df_results[['Índice Normalizado', 'Índice Final (0-1)']].sort_values(by='Índice Final (0-1)', ascending=False),
-            use_container_width=True,
-            column_config={
-                "Índice Final (0-1)": st.column_config.ProgressColumn("Índice Final (0-1)", format="%.3f", min_value=0.0, max_value=1.0)
-            })
+    Para mayor información consulta la página:   
+    [Lineamientos Generales de Evaluación del Fondo de Aportaciones para la Seguridad Pública (FASP) 2025](https://www.gob.mx/sesnsp/documentos/lineamientos-generales-de-evaluacion-del-fondo-de-aportaciones-para-la-seguridad-publica-fasp-2025?state=published)
+    ''')
 
 
-st.subheader("Asignación Final por Entidad Federativa")
+with tab2:
+    st.header('Fórmula de Asignación')
+    st.subheader("Datos de Entrada")
+    st.markdown("Estos son los datos crudos utilizados en el modelo:")
+    st.dataframe(df_original, use_container_width=True)
 
-# Gráfico de barras interactivo con Plotly
-df_plot = df_results.reset_index()
-fig = px.bar(
-    df_plot,
-    x='Región',
-    y='Índice Final (0-1)',
-    color='Índice Final (0-1)',
-    text='Índice Final (0-1)',
-    title=f"Índice de Asignación por Región (Ponderadores: Gasto={w_gasto*100:.0f}%, Policía={w_policia*100:.0f}%, Crimen={w_crimen*100:.0f}%)",
-    template='ggplot2'
-)
+    st.subheader("Normalización de datos")
+    st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
+    df_normalized = df_results[['Gasto_norm', 'Policia_norm', 'Crimen_norm']]
+    # Renombrar columnas para mejor visualización
+    df_normalized.columns = ['Gasto_norm (Alto=Bueno)', 'Policia_norm (Alto=Bueno)', 'Crimen_norm (Bajo=Malo -> Invertida)']
+    st.dataframe(df_normalized, use_container_width=True,
+                column_config={
+                    "Gasto_norm (Alto=Bueno)": st.column_config.ProgressColumn("Gasto_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+                    "Policia_norm (Alto=Bueno)": st.column_config.ProgressColumn("Policia_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+                    "Crimen_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Crimen_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0)
+                })
 
-fig.update_traces(texttemplate='%{text:.3f}', textposition='outside', marker_color='#bc955c')
-fig.update_layout(
-    uniformtext_minsize=8, uniformtext_mode='hide',
-    yaxis_range=[0, 1.1],
-    hovermode="x unified"
+    # Mostrar la tabla final de resultados
+    st.subheader("Resultados")
+    st.dataframe(df_results[['Índice Normalizado', 'Índice Final (0-1)']].sort_values(by='Índice Final (0-1)', ascending=False),
+                use_container_width=True,
+                column_config={
+                    "Índice Final (0-1)": st.column_config.ProgressColumn("Índice Final (0-1)", format="%.3f", min_value=0.0, max_value=1.0)
+                })
+
+
+    st.subheader("Asignación Final por Entidad Federativa")
+
+    # Gráfico de barras interactivo con Plotly
+    df_plot = df_results.reset_index()
+    fig = px.bar(
+        df_plot,
+        x='Región',
+        y='Índice Final (0-1)',
+        color='Índice Final (0-1)',
+        text='Índice Final (0-1)',
+        title=f"Índice de Asignación por Región (Ponderadores: Gasto={w_gasto*100:.0f}%, Policía={w_policia*100:.0f}%, Crimen={w_crimen*100:.0f}%)",
+        template='ggplot2'
     )
-st.plotly_chart(fig, use_container_width=True)
 
-st.markdown("---")
-st.markdown("""
-#### Nota Metodológica.
+    fig.update_traces(texttemplate='%{text:.3f}',
+        textposition='outside',
+        marker_color='#bc955c')
 
-1. **Normalización Min-Max:** Todos los indicadores se escalan al rango [0, 1].
-2. **Inversión:** La 'Tasa de Criminalidad' (una variable negativa) se invierte para que una tasa baja resulte en un valor normalizado alto (cercano a 1).
-3. **Agregación:** Se aplica la suma ponderada de las tres variables normalizadas.
-4. **Re-escalado:** El índice final se re-escala de 0 a 1 para facilitar la interpretación del rendimiento relativo.
-""")
+    fig.update_layout(
+        uniformtext_minsize=8, uniformtext_mode='hide',
+        yaxis_range=[0, 1.1],
+        hovermode="x unified"
+        )
+
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with tab3:
+    st.header('Nota metodológica')
+    st.markdown("""
+    1. **Normalización Min-Max:** Todos los indicadores se escalan al rango [0, 1].
+    2. **Inversión:** La 'Tasa de Criminalidad' (una variable negativa) se invierte para que una tasa baja resulte en un valor normalizado alto (cercano a 1).
+    3. **Agregación:** Se aplica la suma ponderada de las tres variables normalizadas.
+    4. **Re-escalado:** El índice final se re-escala de 0 a 1 para facilitar la interpretación del rendimiento relativo.
+    """)
+
+    st.subheader('Fórmula del Índice de Asignación')
+    st.latex(r'''
+    I_j = \sum_{i=1}^{n}( V_{i,j} \times W_i)
+    ''')
+    
+    st.latex(r'''
+    \text{donde:}\\
+    I_j = \text{Índice de asignación}\\
+    V_{i,j} = \text{Indicador i}\\
+    W_i = \text{Ponderación del indicador i}\\
+    ''')

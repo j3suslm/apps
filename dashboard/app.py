@@ -12,10 +12,44 @@ from shiny import App, Inputs, Outputs, Session, ui
 def server(input: Inputs, output: Outputs, session: Session) -> None:
     # libraries
     #| context: setup
-    import seaborn as sns
+    import numpy as np
+    import pandas as pd
+    import polars as pl
+    import plotly.express as px
+    from pathlib import Path
+    from great_tables import GT
     from shiny import reactive
     from shiny.express import render, ui
-    from IPython.display import display, Markdown
+
+    # ========================================================================
+
+    prestaciones = pd.read_excel('data.xlsx', sheet_name='prestaciones').fillna('').astype(str)
+    prestaciones['Total'] = prestaciones['Total'].str.replace('.0','')
+
+    nacl_prestaciones = (
+        GT(prestaciones)
+        .tab_header(title='Prestaciones por Entidad Federativa', subtitle='')
+        #.cols_width(Entidad_Federativa="5%",)
+        .cols_align(
+            align="center",
+            columns=['Servicios Médicos','Servicios Hospitalarios','Incapacidades','Pensión por invalidez',
+            'Seguro de Vida','Fondo para el Retiro','Fondo para la Vivienda','Guarderías','Becas',
+            'Apoyos para familiares','Riesgo de trabajo','Licencias por maternidad',
+            'Licencias por paternidad','Total'],
+        )
+        .tab_options(
+            container_width="99%",
+            container_height="99%",
+            heading_background_color="#691c32",
+            column_labels_background_color="#ddc9a3",
+            source_notes_background_color="#ddc9a3",
+            row_striping_include_table_body = True,
+            row_striping_background_color='#f8f8f8',
+        )
+        .opt_vertical_padding(scale=0.3)
+        .opt_horizontal_padding(scale=0.5)
+        .tab_source_note('Fuente: SESNSP-Diagnóstico Nacional 2024')
+    )
 
     # ========================================================================
 
@@ -34,89 +68,106 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:
 
     # ========================================================================
 
+    ranking =29
+
     dict(
-      value = "29"
+      value = f'# {ranking}',
     )
 
     # ========================================================================
 
     dict(
       color = "primary",
-      value = "95"
+      value = 95
     )
 
     # ========================================================================
+
+    areas = 5
 
     dict(
       color = "primary",
-      value = " 5 de 12"
+      value = f'{areas} de 12',
     )
 
     # ========================================================================
 
     dict(
-      value = "2"
+      value = 2
     )
 
     # ========================================================================
 
-    dict(
-      color = "primary",
-      value = "6 de 12"
-    )
-
-    # ========================================================================
+    total = 6
 
     dict(
       color = "primary",
-      value = "6,546"
+      value = f'{total} de 12',
     )
 
     # ========================================================================
 
-    dict(
-      value = 56
-    )
-
-    # ========================================================================
-
-    dict(
-      value = 25
-    )
-
-    # ========================================================================
+    edo_fza = 2345
 
     dict(
       color = "primary",
-      value = 16
+      value = f'{edo_fza:,.0f}',
     )
 
     # ========================================================================
+
+    homicidios = 56
 
     dict(
-      value = "250,000"
+      value = homicidios,
     )
 
     # ========================================================================
+
+    academias = 25
 
     dict(
-      color = "primary",
-      value = "1.2"
+      value = academias,
     )
 
     # ========================================================================
 
-    dict(
-      color = "primary",
-      value = "65,000,000"
-    )
-
-    # ========================================================================
+    prestaciones = 16
 
     dict(
       color = "primary",
-      value = "15,000"
+      value = prestaciones,
     )
+
+    # ========================================================================
+
+    edo_fza = 250000
+
+    dict(
+      value = f'{edo_fza:,.0f}',
+    )
+
+    # ========================================================================
+
+    tasa = 1.2
+
+    dict(
+      color = "primary",
+      value = f'{tasa}',
+    )
+
+    # ========================================================================
+
+    x=65000000
+
+    dict(
+      color = "primary",
+      value = f'{x/1_000_000:,.2f} M',
+    )
+
+    # ========================================================================
+
+    nacl_prestaciones
 
     # ========================================================================
 
@@ -125,7 +176,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:
     return None
 
 
-_static_assets = ["tablero_files","images/portada.png","images/prestaciones2.svg","images/sueldo.svg","images/aportaciones_subprograma.svg","images/funciones.svg","images/rfid.svg","images/capacitacion_cursos.svg","images/salarios_ordenado.svg","images/aportaciones_federales_por_entidad_mapa.svg","images/sesnsp.png","tablero_files/libs/quarto-html/tippy.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-b719d3d4935f2b08311a76135e2bf442.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-dark-c8b544e1eab81f7563542c0a8b71d1e9.css","tablero_files/libs/bootstrap/bootstrap-icons.css","tablero_files/libs/bootstrap/bootstrap-57fa414b915ca0d51f41cb565a059b40.min.css","tablero_files/libs/bootstrap/bootstrap-dark-cd70e9f35e31efa67545f5aa8e8bf657.min.css","tablero_files/libs/clipboard/clipboard.min.js","tablero_files/libs/quarto-html/quarto.js","tablero_files/libs/quarto-html/tabsets/tabsets.js","tablero_files/libs/quarto-html/popper.min.js","tablero_files/libs/quarto-html/tippy.umd.min.js","tablero_files/libs/quarto-html/anchor.min.js","tablero_files/libs/bootstrap/bootstrap.min.js","tablero_files/libs/quarto-dashboard/quarto-dashboard.js","tablero_files/libs/quarto-dashboard/stickythead.js","tablero_files/libs/quarto-dashboard/web-components.js","tablero_files/libs/quarto-dashboard/components.js"]
+_static_assets = ["tablero_files","images/portada.png","images/sueldo.svg","images/aportaciones_subprograma.svg","images/funciones.svg","images/rfid.svg","images/capacitacion_cursos.svg","images/salarios_ordenado.svg","images/aportaciones_federales_por_entidad_mapa.svg","images/sesnsp.png","tablero_files/libs/quarto-html/tippy.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css","tablero_files/libs/bootstrap/bootstrap-icons.css","tablero_files/libs/bootstrap/bootstrap-e39c05b05ffb4254f8b1d6a5be55f205.min.css","tablero_files/libs/bootstrap/bootstrap-dark-e39c05b05ffb4254f8b1d6a5be55f205.min.css","tablero_files/libs/clipboard/clipboard.min.js","tablero_files/libs/quarto-html/quarto.js","tablero_files/libs/quarto-html/tabsets/tabsets.js","tablero_files/libs/quarto-html/axe/axe-check.js","tablero_files/libs/quarto-html/popper.min.js","tablero_files/libs/quarto-html/tippy.umd.min.js","tablero_files/libs/quarto-html/anchor.min.js","tablero_files/libs/bootstrap/bootstrap.min.js","tablero_files/libs/quarto-dashboard/quarto-dashboard.js","tablero_files/libs/quarto-dashboard/stickythead.js","tablero_files/libs/quarto-dashboard/web-components.js","tablero_files/libs/quarto-dashboard/components.js"]
 _static_assets = {"/" + sa: Path(__file__).parent / sa for sa in _static_assets}
 
 app = App(

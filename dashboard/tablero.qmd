@@ -15,10 +15,46 @@ theme: _brand.yml
 ```{python}
 # libraries
 #| context: setup
-import seaborn as sns
+import numpy as np
+import pandas as pd
+import polars as pl
+import plotly.express as px
+from pathlib import Path
+from great_tables import GT
 from shiny import reactive
 from shiny.express import render, ui
 ```
+
+```{python}
+prestaciones = pd.read_excel('data.xlsx', sheet_name='prestaciones').fillna('').astype(str)
+prestaciones['Total'] = prestaciones['Total'].str.replace('.0','')
+
+nacl_prestaciones = (
+    GT(prestaciones)
+    .tab_header(title='Prestaciones por Entidad Federativa', subtitle='')
+    #.cols_width(Entidad_Federativa="5%",)
+    .cols_align(
+        align="center",
+        columns=['Servicios Médicos','Servicios Hospitalarios','Incapacidades','Pensión por invalidez',
+        'Seguro de Vida','Fondo para el Retiro','Fondo para la Vivienda','Guarderías','Becas',
+        'Apoyos para familiares','Riesgo de trabajo','Licencias por maternidad',
+        'Licencias por paternidad','Total'],
+    )
+    .tab_options(
+        container_width="99%",
+        container_height="99%",
+        heading_background_color="#691c32",
+        column_labels_background_color="#ddc9a3",
+        source_notes_background_color="#ddc9a3",
+        row_striping_include_table_body = True,
+        row_striping_background_color='#f8f8f8',
+    )
+    .opt_vertical_padding(scale=0.3)
+    .opt_horizontal_padding(scale=0.4)
+    .tab_source_note('Fuente: SESNSP-Diagnóstico Nacional 2024')
+)
+```
+
 
 # Bienvenida
 
@@ -67,8 +103,10 @@ ui.input_select('x', 'Entidad Federativa',
 #| content: valuebox
 #| title: "Ranking"
 #| color: primary
+ranking =29
+
 dict(
-  value = "29"
+  value = f'# {ranking}',
 )
 ```
 
@@ -79,7 +117,7 @@ dict(
 #| title: "Homicidios"
 dict(
   color = "primary",
-  value = "95"
+  value = 95
 )
 ```
 
@@ -88,9 +126,11 @@ dict(
 ```{python}
 #| content: valuebox
 #| title: "Areas mínimas"
+areas = 5
+
 dict(
   color = "primary",
-  value = " 5 de 12"
+  value = f'{areas} de 12',
 )
 ```
 
@@ -101,7 +141,7 @@ dict(
 #| title: "Academias"
 #| color: primary
 dict(
-  value = "2"
+  value = 2
 )
 ```
 
@@ -110,9 +150,11 @@ dict(
 ```{python}
 #| content: valuebox
 #| title: "Prestaciones"
+total = 6
+
 dict(
   color = "primary",
-  value = "6 de 12"
+  value = f'{total} de 12',
 )
 ```
 
@@ -120,10 +162,12 @@ dict(
 
 ```{python}
 #| content: valuebox
-#| title: "Tasa Policial"
+#| title: "Estado de Fuerza"
+edo_fza = 2345
+
 dict(
   color = "primary",
-  value = "6,546"
+  value = f'{edo_fza:,.0f}',
 )
 ```
 
@@ -244,8 +288,10 @@ FORTAMUN|12,000,000|6%|
 #| content: valuebox
 #| title: "Homicidios"
 #| color: primary
+homicidios = 56
+
 dict(
-  value = 56
+  value = homicidios,
 )
 ```
 
@@ -255,8 +301,10 @@ dict(
 #| content: valuebox
 #| title: "Academias"
 #| color: primary
+academias = 25
+
 dict(
-  value = 25
+  value = academias,
 )
 ```
 
@@ -265,9 +313,11 @@ dict(
 ```{python}
 #| content: valuebox
 #| title: "Prestaciones"
+prestaciones = 16
+
 dict(
   color = "primary",
-  value = 16
+  value = prestaciones,
 )
 ```
 
@@ -277,8 +327,10 @@ dict(
 #| content: valuebox
 #| title: "Estado de Fuerza"
 #| color: primary
+edo_fza = 250000
+
 dict(
-  value = "250,000"
+  value = f'{edo_fza:,.0f}',
 )
 ```
 
@@ -286,10 +338,12 @@ dict(
 
 ```{python}
 #| content: valuebox
-#| title: "Policías/1,000 hab"
+#| title: "Tasa Policial"
+tasa = 1.2
+
 dict(
   color = "primary",
-  value = "1.2"
+  value = f'{tasa}',
 )
 ```
 
@@ -298,20 +352,11 @@ dict(
 ```{python}
 #| content: valuebox
 #| title: "Presupuesto"
+x=65000000
+
 dict(
   color = "primary",
-  value = "65,000,000"
-)
-```
-
-### Column
-
-```{python}
-#| content: valuebox
-#| title: "Salario Promedio"
-dict(
-  color = "primary",
-  value = "15,000"
+  value = f'{x/1_000_000:,.2f} M',
 )
 ```
 
@@ -322,10 +367,10 @@ dict(
 
 #### Prestaciones
 
-::: {.card expandable="false"}
-
-![](images/prestaciones2.svg){width=55%}
-:::
+```{python}
+#| expandable: false
+nacl_prestaciones
+```
 
 #### Salarios
 
