@@ -390,7 +390,7 @@ dict(
 ```
 
 
-## Row {height=42%}
+## Row {height=85%}
 
 ### Column {.tabset}
 

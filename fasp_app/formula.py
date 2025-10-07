@@ -7,6 +7,18 @@ import plotly.express as px
 from PIL import Image
 
 
+# Datos de ejemplo para diferentes regiones/municipios
+data = {
+    'Región': ['Central', 'Norte', 'Sur-Este', 'Occidente', 'Metropolitana'],
+    'Gasto por Hab': [500, 320, 780, 450, 610], # Gasto público en USD/habitante
+    'Policías por 100k': [350, 210, 420, 280, 500], # Policías por 100,000 habitantes
+    'Tasa de Criminalidad': [4500, 6800, 3100, 5500, 4000] # Delitos por 100,000 habitantes (variable negativa)
+}
+df_original = pd.DataFrame(data)
+df_original = df_original.set_index('Región')
+df_original2 = pd.read_csv('datos_entrada.csv')
+
+
 # --- Funciones de Cálculo del Índice ---
 def min_max_normalize(series, direction='positive'):
     """
@@ -50,17 +62,6 @@ def calculate_index(df, weights):
     df['Índice Final (0-1)'] = min_max_normalize(df['Índice Normalizado'], direction='positive')
 
     return df
-
-
-# Datos de ejemplo para diferentes regiones/municipios
-data = {
-    'Región': ['Central', 'Norte', 'Sur-Este', 'Occidente', 'Metropolitana'],
-    'Gasto por Hab': [500, 320, 780, 450, 610], # Gasto público en USD/habitante
-    'Policías por 100k': [350, 210, 420, 280, 500], # Policías por 100,000 habitantes
-    'Tasa de Criminalidad': [4500, 6800, 3100, 5500, 4000] # Delitos por 100,000 habitantes (variable negativa)
-}
-df_original = pd.DataFrame(data)
-df_original = df_original.set_index('Región')
 
 
 # page settings
@@ -122,17 +123,22 @@ st.markdown("""
 # Sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
 w_gasto = st.sidebar.slider(
-    'Gasto por Habitante (Alto=Bueno)',
+    'Población (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.40, step=0.05, key='gasto'
 )
 w_policia = st.sidebar.slider(
-    'Policías por 100k (Alto=Bueno)',
+    'Incidencia delicitiva (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='policia'
 )
 w_crimen = st.sidebar.slider(
-    'Tasa de Criminalidad (Alto=Malo)',
+    'Victimización (Alto=Malo)',
     min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
 )
+#w_penitenciario = st.sidebar.slider(
+#    'Sobrepoblación penitenciaria (Alto=Malo)',
+#    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
+#)
+
 
 # Asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
 total_sum = w_gasto + w_policia + w_crimen
@@ -147,7 +153,8 @@ if total_sum != 1.0:
 weights = {
     'Gasto': w_gasto,
     'Policía': w_policia,
-    'Crimen': w_crimen
+    'Crimen': w_crimen,
+#    'Sobrepoblación penitenciaria': w_penitenciario,
 }
 
 
@@ -174,7 +181,7 @@ with tab1:
     ''')
 
     st.image('antecedentes.png',
-        caption='Categorías de los indicadores comprendidos para el cálculo de asignación.',
+        caption='Categorías comprendidas para el cálculo de asignación.',
         width=700)
 
     st.markdown('''
@@ -202,9 +209,14 @@ with tab1:
 
 with tab2:
     st.header('2. Fórmula de Asignación')
+
+    st.image('indicadores.png',
+        caption='Indicadores comprendidos para el cálculo de asignación.',
+        width=700)
+    
     st.subheader("2.1 Datos de Entrada")
     st.markdown("Estos son los datos utilizados en el modelo:")
-    st.dataframe(df_original, use_container_width=True)
+    st.dataframe(df_original2, use_container_width=True)
 
     st.subheader("2.2 Normalización de datos")
     st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
