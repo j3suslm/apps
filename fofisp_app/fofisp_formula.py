@@ -15,7 +15,7 @@ st.markdown('<a href="https://tinyurl.com/sesnsp-dgp-blog" target="_self">Home</
 # hide streamlit logo and footer
 hide_default_format = """
     <style>
-    #MainMenu {visibility: hidden; }
+    #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     </style>
     """
@@ -71,20 +71,23 @@ w_pob = st.sidebar.slider(
 )
 w_var_edo_fza = st.sidebar.slider(
     'Incremento estado de fuerza (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Incremento estado de fuerza'
+    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Incremento estado de fuerza'
 )
 w_var_incidencia_del = st.sidebar.slider(
     'Variación incidencia delictiva (Alto=Malo)',
-    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Variación incidencia delictiva'
+    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Variación incidencia delictiva'
 )
 w_academias = st.sidebar.slider(
     'Academias (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Academias'
+    min_value=0.0, max_value=1.0, value=0.05, step=0.05, key='Academias'
 )
 
 
 # Asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
 total_sum = w_pob + w_var_edo_fza + w_var_incidencia_del + w_academias
+st.sidebar.markdown('---')
+st.sidebar.markdown(f'Suma de ponderaciones: {total_sum:.2f}')
+
 if total_sum != 1.0:
     # Ajustar el peso más pequeño (o cualquier otro) para que sume 1
     w_pob = w_pob / total_sum
@@ -137,7 +140,7 @@ indicadores = (
         heading_background_color="#691c32",
         column_labels_background_color="#ddc9a3",
         source_notes_background_color="#ddc9a3",
-        row_striping_include_table_body = True,
+        row_striping_include_table_body=True,
         row_striping_background_color='#f8f8f8',
     )
     .tab_source_note(
@@ -157,7 +160,7 @@ fofisp_datos_entrada2 = (
             'Var_incidencia_del':'{:.2f}%',
             'Var_edo_fza':'{:.2f}%',
             }
-            )
+        )
 )
 
 
@@ -204,6 +207,8 @@ def calculate_index(df, weights):
 
     # El índice final también se normaliza a un rango de 0 a 1 para asegurar comparabilidad
     df['Indice Final (0-1)'] = min_max_normalize(df['Indice Normalizado'], direction='positive')
+    epsilon = 0.05
+    df['Indice Final (Corrimiento)'] = (df['Indice Final (0-1)'] * (1 - epsilon)) + epsilon
 
     return df
 
@@ -224,11 +229,8 @@ with tab1:
 
     El monto autorizado en el **Presupuesto de Egresos de la Federación (PEF)** para el **Fondo para el 
     Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2026** es:
-    
-    
-    {{presupuesto}}
 
-    ##### $1,155,443,263.97
+    ##### $1,15,443,263.97
 
     Los Indicadores de asignación utilizados en este modelo son los siguientes:
     ''')
@@ -279,15 +281,18 @@ with tab2:
 
     # Mostrar la tabla final de resultados
     st.subheader("2.3 Resultados")
-    st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)']].sort_values(by='Indice Final (0-1)', ascending=False),
+    st.markdown('**Indices**')
+    st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)', 'Indice Final (Corrimiento)']].sort_values(by='Indice Final (0-1)', ascending=False),
                 use_container_width=True,
                 column_config={
-                    "Indice Final (0-1)": st.column_config.ProgressColumn("Indice Final (0-1)", format="%.3f", min_value=0.0, max_value=1.0)
+                    "Indice Final (Corrimiento)": st.column_config.ProgressColumn("Indice Final (Corrimiento)", format="%.3f", min_value=0.0, max_value=1.0)
                 })
 
+    st.markdown('**Importes Asignados por Entidad Federativa**')
     # reckon end allocated amount
-    df_results['Importe_asignado'] = (presupuesto * df_results['Indice Final (0-1)'])/1_000_000
-    st.dataframe(df_results)
+    df_results['Importe_asignado'] = (presupuesto * df_results['Indice Final (Corrimiento)'])/1_000_000
+    st.dataframe(df_results[['Entidad_Federativa','Pob_norm','Var_edo_fza_norm','Var_incidencia_del_norm',
+        'Academias_norm','Indice Final (0-1)','Indice Final (Corrimiento)','Importe_asignado']])
 
     st.subheader("2.4 Asignación Final por Entidad Federativa")
 
@@ -297,9 +302,12 @@ with tab2:
         x='Entidad_Federativa',
         y='Importe_asignado',
         text='Importe_asignado',
-        title=f"Indice de Asignación por Entidad Federativa (Ponderadores: Población={w_pob*100:.0f}%, Edo_fza={w_var_edo_fza*100:.0f}%, Var_incidencia_del={w_var_incidencia_del*100:.0f}%), Academias={w_academias*100:.0f}%),",
+        title=f"Ponderaciones: Población={w_pob*100:.0f}%, Estado de fuerza={w_var_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%)",
         template='ggplot2',
-        hover_data=['Indice Final (0-1)'],
+        hover_data={
+            'Indice Normalizado':False, # remove species from hover data
+            'Importe_asignado':':,.2f', # customize hover for column of y attribute
+            },
         labels={'Entidad_Federativa':'Entidad Federativa',
             'Importe_asignado':'Importe asignado',},
     )
@@ -308,8 +316,9 @@ with tab2:
         textposition='outside',
         marker_color='#691c32',
         opacity=0.9,
-        marker_line_color='#28282b',
-        texttemplate='%{text:,.2f}',
+        marker_line_color='#6f7271',
+        marker_line_width=1.2,
+        texttemplate='$%{text:,.2f}',
         textfont_size=20,
         )
 
@@ -319,18 +328,28 @@ with tab2:
         autosize=True,
         height=600,
         xaxis_title='',
-        yaxis_title='Importe asignado (mdp)'
+        yaxis_title='Importe asignado (mdp)',
+        hoverlabel=dict(
+            bgcolor="#f8f8f8",
+            font_size=14,
+            font_family="Noto Sans",
+            )
         )
 
     fig.update_xaxes(
-        title_font=dict(size=18, family='Noto Sans', color='crimson'),  # X-axis title font size
-        tickfont=dict(size=12, family='Noto Sans', color='red')  # X-axis tick label font size
+        showgrid=True,
+        title_font=dict(size=18, family='Noto Sans', color='#691c32'),  # X-axis title font size
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),  # X-axis tick label font size
+        tickangle=-75,
         )
 
     fig.update_yaxes(
-        title_font=dict(size=18, family='Noto Sans', color='crimson'),  # X-axis title font size
-        tickfont=dict(size=12, family='Noto Sans', color='red')  # X-axis tick label font size
-        
+        tickprefix="$",
+        tickformat=',.0f',
+        showgrid=True,
+        title_font=dict(size=16, family='Noto Sans', color='#28282b'),
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),
+        tickangle=0,
         )
     
     st.plotly_chart(fig, use_container_width=True)
@@ -368,6 +387,39 @@ with tab3:
     V_{i,j} = \text{Valor normalizado del indicador i para la Entidad Federativa j}\\
     W_i = \text{Ponderación del indicador i}\\
     ''')
+
+    st.subheader('3.3 Fórmula de Corrimiento Estadístico')
+    st.markdown('''
+    La fórmula opera sobre el índice normalizado (con rango [0,1]) usando una constante pequeña y positiva, ϵ.
+
+    1. Compresión del Rango: (indice_normalizado * (1−ϵ))
+
+    **Objetivo: Comprimir el rango de los valores normalizados.**
+
+    - Multiplicar por un factor ligeramente menor que 1, como (1−0.0001)=0.9999.
+    - El rango original [0,1] se convierte en [0,1−ϵ].
+    - El valor mínimo (0) se mantiene en 0×(1−ϵ)=0.
+    - El valor máximo (1) se reduce a 1×(1−ϵ)=1−ϵ.
+
+    2. Corrimiento hacia arriba (Shift): +ϵ
+
+    **Objetivo: Desplazar todo el conjunto de datos hacia arriba por la cantidad ϵ.**
+
+    Se suma ϵ al resultado del paso anterior.
+
+    - El mínimo, que era 0, ahora es 0+ϵ=ϵ.
+    - El máximo, que era 1−ϵ, ahora es (1−ϵ)+ϵ=1.
+    
+    
+    ##### Tabla de Resultados del Corrimiento Estadístico
+
+    |Indice normalizado|Transformación|Valor Final|
+    |:---:|:---:|:---:|
+    |0 (mínimo)|(0 * (1−ϵ)) + ϵ|ϵ|
+    |1 (máximo)|(1 * (1−ϵ)) + ϵ|1|
+
+    ''')
+
 
     st.markdown('---')
     st.markdown('*Dirección General de Planeación*')

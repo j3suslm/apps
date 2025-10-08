@@ -16,7 +16,7 @@ data = {
 }
 df_original = pd.DataFrame(data)
 df_original = df_original.set_index('Región')
-df_original2 = pd.read_csv('datos_entrada.csv')
+df_original2 = pd.read_csv('fasp_datos_entrada.csv')
 
 
 # --- Funciones de Cálculo del Índice ---
