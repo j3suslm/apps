@@ -5,66 +5,10 @@ import numpy as np
 import polars as pl
 import plotly.express as px
 from PIL import Image
+from great_tables import GT, md
 
 
-# Datos de ejemplo para diferentes regiones/municipios
-data = {
-    'Región': ['Central', 'Norte', 'Sur-Este', 'Occidente', 'Metropolitana'],
-    'Gasto por Hab': [500, 320, 780, 450, 610], # Gasto público en USD/habitante
-    'Policías por 100k': [350, 210, 420, 280, 500], # Policías por 100,000 habitantes
-    'Tasa de Criminalidad': [4500, 6800, 3100, 5500, 4000] # Delitos por 100,000 habitantes (variable negativa)
-}
-df_original = pd.DataFrame(data)
-df_original = df_original.set_index('Región')
-
-
-
-# --- Funciones de Cálculo del Índice ---
-def min_max_normalize(series, direction='positive'):
-    """
-    Normaliza una serie de datos entre 0 y 1 usando el método Min-Max.
-    Si la dirección es 'negative', se invierte (Alto = Malo se convierte en Alto = Bueno).
-    """
-    min_val = series.min()
-    max_val = series.max()
-
-    if max_val == min_val:
-        return pd.Series(0.5, index=series.index) # Retorna 0.5 si todos los valores son iguales
-
-    if direction == 'positive':
-        # (X - Min) / (Max - Min) -> Un valor más alto resulta en una puntuación más alta
-        return (series - min_val) / (max_val - min_val)
-    elif direction == 'negative':
-        # (Max - X) / (Max - Min) -> Un valor más bajo (mejor) resulta en una puntuación más alta
-        return (max_val - series) / (max_val - min_val)
-    else:
-        raise ValueError("La dirección debe ser 'positiva' o 'negativa'")
-
-def calculate_index(df, weights):
-    """Calcula el Índice Compuesto Normalizado."""
-
-    # 1. Normalización de Variables
-    # Gasto y Policías son variables POSITIVAS (más es mejor)
-    df['Gasto_norm'] = min_max_normalize(df['Gasto por Hab'], direction='positive')
-    df['Policia_norm'] = min_max_normalize(df['Policías por 100k'], direction='positive')
-
-    # Tasa de Criminalidad es una variable NEGATIVA (menos es mejor, por lo tanto, se invierte)
-    df['Crimen_norm'] = min_max_normalize(df['Tasa de Criminalidad'], direction='negative')
-
-    # 2. Aplicación de Ponderadores
-    df['Índice Normalizado'] = (
-        df['Gasto_norm'] * weights['Gasto'] +
-        df['Policia_norm'] * weights['Policía'] +
-        df['Crimen_norm'] * weights['Crimen']
-    )
-
-    # El índice final también se normaliza a un rango de 0 a 1 para asegurar comparabilidad
-    df['Índice Final (0-1)'] = min_max_normalize(df['Índice Normalizado'], direction='positive')
-
-    return df
-
-
-# page settings
+# web app settings
 # blog home link
 st.markdown('<a href="https://tinyurl.com/sesnsp-dgp-blog" target="_self">Home</a>', unsafe_allow_html=True)
 
@@ -99,7 +43,6 @@ st.sidebar.image('sesnsp.png')
 st.markdown(hide_default_format, unsafe_allow_html=True)
 st.sidebar.header("Ponderaciones")
 
-    
 # customize color of sidebar and text
 st.markdown("""
     <style>
@@ -122,69 +65,177 @@ st.markdown("""
 
 # Sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
-w_gasto = st.sidebar.slider(
+w_pob = st.sidebar.slider(
     'Población (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.40, step=0.05, key='gasto'
+    min_value=0.0, max_value=1.0, value=0.75, step=0.05, key='Población'
 )
-w_policia = st.sidebar.slider(
-    'Incidencia delicitiva (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='policia'
+w_var_edo_fza = st.sidebar.slider(
+    'Incremento estado de fuerza (Alto=Bueno)',
+    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Incremento estado de fuerza'
 )
-w_crimen = st.sidebar.slider(
-    'Victimización (Alto=Malo)',
-    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
+w_var_incidencia_del = st.sidebar.slider(
+    'Variación incidencia delictiva (Alto=Malo)',
+    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Variación incidencia delictiva'
 )
-#w_penitenciario = st.sidebar.slider(
-#    'Sobrepoblación penitenciaria (Alto=Malo)',
-#    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='crimen'
-#)
+w_academias = st.sidebar.slider(
+    'Academias (Alto=Bueno)',
+    min_value=0.0, max_value=1.0, value=0.30, step=0.05, key='Academias'
+)
 
 
 # Asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
-total_sum = w_gasto + w_policia + w_crimen
+total_sum = w_pob + w_var_edo_fza + w_var_incidencia_del + w_academias
 if total_sum != 1.0:
     # Ajustar el peso más pequeño (o cualquier otro) para que sume 1
-    w_gasto = w_gasto / total_sum
-    w_policia = w_policia / total_sum
-    w_crimen = w_crimen / total_sum
+    w_pob = w_pob / total_sum
+    w_var_edo_fza = w_var_edo_fza / total_sum
+    w_var_incidencia_del = w_var_incidencia_del / total_sum
+    w_academias = w_academias / total_sum
     # Redondeamos para fines de presentación, aunque los cálculos usan el valor exacto
-    st.sidebar.markdown(f"**Suma Ajustada:** {w_gasto:.2f} + {w_policia:.2f} + {w_crimen:.2f} = 1.00")
+    st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_var_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
 
 weights = {
-    'Gasto': w_gasto,
-    'Policía': w_policia,
-    'Crimen': w_crimen,
-#    'Sobrepoblación penitenciaria': w_penitenciario,
+    'Población': w_pob,
+    'Var_edo_fza': w_var_edo_fza,
+    'Var_incidencia_del': w_var_incidencia_del,
+    'Academias': w_academias,
 }
 
 
+# tabla de indicadores
+indicadores_fofisp = pd.read_csv('indicadores_fofisp.csv')
+indicadores_fofisp['Categoría'] = indicadores_fofisp['Categoría'].fillna('')
+indicadores_fofisp['Ponderación_categoría'] = indicadores_fofisp['Ponderación_categoría'].fillna(0)
+
+# tabla formateada
+indicadores = (
+    GT(indicadores_fofisp)
+    .tab_stub()
+    .tab_header(
+        title=md('**Indicadores de Distribución**'),
+        subtitle='Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública'
+        )
+    .fmt_currency(columns=['Monto_asignado'])
+    .fmt_percent(columns=['Ponderación_categoría','Ponderación_indicador'], decimals=1).sub_zero(zero_text=md(''))
+    .cols_width(cases={
+            "Categoría": "23%",
+            "Ponderación_categoría": "15%",
+            "Indicador": "27%",
+            "Ponderación_indicador": "15%",
+            "Monto_asignado": "20%"
+            })
+    .cols_label(
+        Categoría = md('**Categoría**'),
+        Ponderación_categoría = md('**Ponderación categoría**'),
+        Indicador = md('**Indicador**'),
+        Ponderación_indicador = md('**Ponderación indicador**'),
+        Monto_asignado = md('**Monto asignado**')
+    )
+    .tab_options(
+        container_width="100%",
+        container_height="100%",
+        heading_background_color="#691c32",
+        column_labels_background_color="#ddc9a3",
+        source_notes_background_color="#ddc9a3",
+        row_striping_include_table_body = True,
+        row_striping_background_color='#f8f8f8',
+    )
+    .tab_source_note(
+        source_note=md("Fuente: *Secretariado Ejecutivo del Sistema Nacional de Seguridad Pública*")
+    )
+)
+
+# entry variables dataset
+fofisp_datos_entrada = pd.read_csv('fofisp_datos_entrada.csv')
+# change index to start at 1, must specify last limit
+fofisp_datos_entrada2 = fofisp_datos_entrada.copy()
+fofisp_datos_entrada2.index = pd.RangeIndex(start=1, stop=33, step=1)
+fofisp_datos_entrada2 = (
+    fofisp_datos_entrada2
+        .style.format(
+            {'Población': '{:,.2f}',
+            'Var_incidencia_del':'{:.2f}%',
+            'Var_edo_fza':'{:.2f}%',
+            }
+            )
+)
+
+
+# --- Funciones de Cálculo del Índice ---
+def min_max_normalize(series, direction='positive'):
+    """
+    Normaliza una serie de datos entre 0 y 1 usando el método Min-Max.
+    Si la dirección es 'negativa', se invierte (Alto = Malo se convierte en Alto = Bueno).
+    """
+    min_val = series.min()
+    max_val = series.max()
+
+    if max_val == min_val:
+        return pd.Series(0.5, index=series.index) # Retorna 0.5 si todos los valores son iguales
+
+    if direction == 'positive':
+        # (X - Min) / (Max - Min) -> Un valor más alto resulta en una puntuación más alta
+        return (series - min_val) / (max_val - min_val)
+    elif direction == 'negative':
+        # (Max - X) / (Max - Min) -> Un valor más bajo (mejor) resulta en una puntuación más alta
+        return (max_val - series) / (max_val - min_val)
+    else:
+        raise ValueError("La dirección debe ser 'positiva' o 'negativa'")
+
+def calculate_index(df, weights):
+    """Calcula el Índice Compuesto Normalizado."""
+
+    # 1. Normalización de Variables
+    # variables positivas
+    df['Pob_norm'] = min_max_normalize(df['Población'], direction='positive')
+    df['Var_edo_fza_norm'] = min_max_normalize(df['Var_edo_fza'], direction='positive')
+    df['Academias_norm'] = min_max_normalize(df['Academias'], direction='positive')
+
+    # variables negativas (menos es mejor, por lo tanto, se invierte)
+    df['Var_incidencia_del_norm'] = min_max_normalize(df['Var_incidencia_del'], direction='negative')
+
+    # 2. Aplicación de Ponderadores
+    df['Indice Normalizado'] = (
+        df['Pob_norm'] * weights['Población'] +
+        df['Var_edo_fza_norm'] * weights['Var_edo_fza'] +
+        df['Var_incidencia_del_norm'] * weights['Var_incidencia_del'] +
+        df['Academias_norm'] * weights['Academias']
+    )
+
+    # El índice final también se normaliza a un rango de 0 a 1 para asegurar comparabilidad
+    df['Indice Final (0-1)'] = min_max_normalize(df['Indice Normalizado'], direction='positive')
+
+    return df
+
 # --- Cálculo y Visualización ---
 # Calcular el índice
-df_results = calculate_index(df_original.copy(), weights)
+df_results = calculate_index(fofisp_datos_entrada, weights)
 
 
 # tab layout
 tab1, tab2, tab3 = st.tabs(['1.Introducción', '2.Fórmula', '3.Nota metodológica'])
 
 with tab1:
+    presupuesto = 1_155_443_263.97
+
     # header
     st.subheader('1. Introducción')
     st.markdown('''
 
-    El monto autorizado en el PEF para el Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública 2026 es:
+    El monto autorizado en el **Presupuesto de Egresos de la Federación (PEF)** para el **Fondo para el 
+    Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2026** es:
     
-    > #### $1,155,443,263.97
+    
+    {{presupuesto}}
+
+    ##### $1,155,443,263.97
 
     Los Indicadores de asignación utilizados en este modelo son los siguientes:
+    ''')
 
-    |Categorías de distribución|Ponderación categoría|Indicadores|Ponderación indicador|Monto asignado|
-    |:---|:---:|---|:---:|---:|
-    |Población|75%|Población por Entidad Federativa|75%|$866,582,447.98|
-    |Capacidades institucionales|25%|Variación de incidencia delictiva|8.33%|$96,286,938.66|
-    |||Incremento del Estado de Fuerza|8.33%|$96,286,938.66|
-    |||Profesionalización|8.33%|$96,286,938.66|
-
+    st.html(indicadores)
     
+    st.markdown('''
     ##### ¿Cómo funciona esta aplicación?
     
     Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un Índice de Asignación de Seguridad Pública Normalizado.
@@ -192,14 +243,14 @@ with tab1:
     El corazón de la aplicación es la ponderación.
     Al usar los controles deslizantes en la barra lateral, se pueden simular diferentes prioridades de política pública.
     
-    Al ajustar estos pesos, la aplicación recalcula el índice en tiempo real, permitiéndo ver cómo los
-     supuestos de ponderación impactan la clasificación final de las regiones.
+    Al ajustar estas ponderaciones, la aplicación recalcula el índice en tiempo real, permitiéndo ver cómo los
+     supuestos de ponderación impactan la clasificación final de las Entidades Federativas.
     Esto proporciona una base objetiva para discutir y justificar las decisiones de asignación de fondos,
      asegurando que los recursos se dirijan donde son más necesarios o donde generarán el mayor impacto.
 
     ##### Referencias
 
-    [Lineamientos Generales de Evaluación del Fondo de Aportaciones para la Seguridad Pública (FASP) 2025](https://www.gob.mx/sesnsp/documentos/lineamientos-generales-de-evaluacion-del-fondo-de-aportaciones-para-la-seguridad-publica-fasp-2025?state=published)
+    [Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2025](https://www.gob.mx/sesnsp/acciones-y-programas/fondo-para-el-fortalecimiento-de-las-instituciones-de-seguridad-publica-fofisp?state=published)
     
     ---
 
@@ -209,58 +260,79 @@ with tab1:
 
 with tab2:
     st.header('2. Fórmula de Asignación')
-
-    
-    
     st.subheader("2.1 Datos de Entrada")
     st.markdown("Estos son los datos utilizados en el modelo:")
-    st.dataframe(df_original, use_container_width=True)
+    st.dataframe(fofisp_datos_entrada2, use_container_width=True)
 
     st.subheader("2.2 Normalización de datos")
     st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
-    df_normalized = df_results[['Gasto_norm', 'Policia_norm', 'Crimen_norm']]
+    df_normalized = df_results[['Pob_norm', 'Var_edo_fza_norm', 'Var_incidencia_del_norm', 'Academias_norm']]
     # Renombrar columnas para mejor visualización
-    df_normalized.columns = ['Gasto_norm (Alto=Bueno)', 'Policia_norm (Alto=Bueno)', 'Crimen_norm (Bajo=Malo -> Invertida)']
+    df_normalized.columns = ['Pob_norm (Alto=Bueno)', 'Var_edo_fza_norm (Alto=Bueno)', 'Var_incidencia_del_norm (Bajo=Malo -> Invertida)', 'Academias_norm (Alto=Bueno)']
     st.dataframe(df_normalized, use_container_width=True,
                 column_config={
-                    "Gasto_norm (Alto=Bueno)": st.column_config.ProgressColumn("Gasto_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                    "Policia_norm (Alto=Bueno)": st.column_config.ProgressColumn("Policia_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                    "Crimen_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Crimen_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0)
+                    "Pob_norm (Alto=Bueno)": st.column_config.ProgressColumn("Pob_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+                    "Var_edo_fza_norm (Alto=Bueno)": st.column_config.ProgressColumn("Var_Edo_fza_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+                    "Var_incidencia_del_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Var_incidencia_del_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0),
+                    "Academias_norm (Alto=Bueno)": st.column_config.ProgressColumn("Academias_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
                 })
 
     # Mostrar la tabla final de resultados
     st.subheader("2.3 Resultados")
-    st.dataframe(df_results[['Índice Normalizado', 'Índice Final (0-1)']].sort_values(by='Índice Final (0-1)', ascending=False),
+    st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)']].sort_values(by='Indice Final (0-1)', ascending=False),
                 use_container_width=True,
                 column_config={
-                    "Índice Final (0-1)": st.column_config.ProgressColumn("Índice Final (0-1)", format="%.3f", min_value=0.0, max_value=1.0)
+                    "Indice Final (0-1)": st.column_config.ProgressColumn("Indice Final (0-1)", format="%.3f", min_value=0.0, max_value=1.0)
                 })
 
+    # reckon end allocated amount
+    df_results['Importe_asignado'] = (presupuesto * df_results['Indice Final (0-1)'])/1_000_000
+    st.dataframe(df_results)
 
     st.subheader("2.4 Asignación Final por Entidad Federativa")
 
     # Gráfico de barras interactivo con Plotly
-    df_plot = df_results.reset_index()
     fig = px.bar(
-        df_plot,
-        x='Región',
-        y='Índice Final (0-1)',
-        color='Índice Final (0-1)',
-        text='Índice Final (0-1)',
-        title=f"Índice de Asignación por Región (Ponderadores: Gasto={w_gasto*100:.0f}%, Policía={w_policia*100:.0f}%, Crimen={w_crimen*100:.0f}%)",
-        template='ggplot2'
+        df_results,
+        x='Entidad_Federativa',
+        y='Importe_asignado',
+        text='Importe_asignado',
+        title=f"Indice de Asignación por Entidad Federativa (Ponderadores: Población={w_pob*100:.0f}%, Edo_fza={w_var_edo_fza*100:.0f}%, Var_incidencia_del={w_var_incidencia_del*100:.0f}%), Academias={w_academias*100:.0f}%),",
+        template='ggplot2',
+        hover_data=['Indice Final (0-1)'],
+        labels={'Entidad_Federativa':'Entidad Federativa',
+            'Importe_asignado':'Importe asignado',},
     )
 
-    fig.update_traces(texttemplate='%{text:.3f}',
+    fig.update_traces(
         textposition='outside',
-        marker_color='#bc955c')
+        marker_color='#691c32',
+        opacity=0.9,
+        marker_line_color='#28282b',
+        texttemplate='%{text:,.2f}',
+        textfont_size=20,
+        )
 
     fig.update_layout(
         uniformtext_minsize=8, uniformtext_mode='hide',
-        yaxis_range=[0, 1.1],
-        hovermode="x unified"
+        hovermode="x unified",
+        autosize=True,
+        height=600,
+        xaxis_title='',
+        yaxis_title='Importe asignado (mdp)'
         )
 
+    fig.update_xaxes(
+        title_font=dict(size=18, family='Noto Sans', color='crimson'),  # X-axis title font size
+        tickfont=dict(size=12, family='Noto Sans', color='red')  # X-axis tick label font size
+        )
+
+    fig.update_yaxes(
+        title_font=dict(size=18, family='Noto Sans', color='crimson'),  # X-axis title font size
+        tickfont=dict(size=12, family='Noto Sans', color='red')  # X-axis tick label font size
+        
+        )
+    
     st.plotly_chart(fig, use_container_width=True)
 
     st.markdown('---')
