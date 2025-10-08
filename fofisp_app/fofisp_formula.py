@@ -230,7 +230,7 @@ with tab1:
     El monto autorizado en el **Presupuesto de Egresos de la Federación (PEF)** para el **Fondo para el 
     Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2026** es:
 
-    ##### $1,15,443,263.97
+    ##### $1,155,443,263.97
 
     Los Indicadores de asignación utilizados en este modelo son los siguientes:
     ''')
@@ -291,6 +291,8 @@ with tab2:
     st.markdown('**Importes Asignados por Entidad Federativa**')
     # reckon end allocated amount
     df_results['Importe_asignado'] = (presupuesto * df_results['Indice Final (Corrimiento)'])/1_000_000
+    st.dataframe(df_results[['Importe_asignado']].sum())
+
     st.dataframe(df_results[['Entidad_Federativa','Pob_norm','Var_edo_fza_norm','Var_incidencia_del_norm',
         'Academias_norm','Indice Final (0-1)','Indice Final (Corrimiento)','Importe_asignado']])
 
