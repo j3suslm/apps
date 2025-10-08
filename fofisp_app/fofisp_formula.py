@@ -289,12 +289,19 @@ with tab2:
                 })
 
     st.markdown('**Importes Asignados por Entidad Federativa**')
-    # reckon end allocated amount
-    df_results['Importe_asignado'] = (presupuesto * df_results['Indice Final (Corrimiento)'])/1_000_000
-    st.dataframe(df_results[['Importe_asignado']].sum())
 
+    # reckon end allocated amount
+    # sum final index
+    total_indice = df_results['Indice Final (Corrimiento)'].sum()
+    # create share weights
+    df_results['Reparto'] = df_results['Indice Final (Corrimiento)'] / total_indice
+    # allocate funds
+    df_results['Importe_asignado'] = df_results['Reparto'] * presupuesto
+    # validate allocated budget
+    #st.dataframe(df_results[['Importe_asignado']].sum())
+    
     st.dataframe(df_results[['Entidad_Federativa','Pob_norm','Var_edo_fza_norm','Var_incidencia_del_norm',
-        'Academias_norm','Indice Final (0-1)','Indice Final (Corrimiento)','Importe_asignado']])
+        'Academias_norm','Indice Normalizado','Indice Final (0-1)','Indice Final (Corrimiento)','Importe_asignado']])
 
     st.subheader("2.4 Asignación Final por Entidad Federativa")
 
@@ -307,7 +314,8 @@ with tab2:
         title=f"Ponderaciones: Población={w_pob*100:.0f}%, Estado de fuerza={w_var_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%)",
         template='ggplot2',
         hover_data={
-            'Indice Normalizado':False, # remove species from hover data
+            'Entidad_Federativa':False,
+            'Indice Normalizado':False, # remove from hover data
             'Importe_asignado':':,.2f', # customize hover for column of y attribute
             },
         labels={'Entidad_Federativa':'Entidad Federativa',
@@ -330,10 +338,10 @@ with tab2:
         autosize=True,
         height=600,
         xaxis_title='',
-        yaxis_title='Importe asignado (mdp)',
+        yaxis_title='Importe asignado',
         hoverlabel=dict(
-            bgcolor="#f8f8f8",
-            font_size=14,
+            bgcolor="#fff",
+            font_size=16,
             font_family="Noto Sans",
             )
         )
@@ -363,13 +371,13 @@ with tab2:
 with tab3:
     st.header('3. Nota metodológica')
     st.markdown("""
-    1. **Normalización Min-Max:** Todos los indicadores se escalan al rango [0, 1].
-    2. **Inversión:** La 'Tasa de Criminalidad' (una variable negativa) se invierte para que una tasa baja resulte en un valor normalizado alto (cercano a 1).
-    3. **Agregación:** Se aplica la suma ponderada de las tres variables normalizadas.
-    4. **Re-escalado:** El índice final se re-escala de 0 a 1 para facilitar la interpretación del rendimiento relativo.
+    1. **Normalización:** Todos los indicadores se escalan al rango [0, 1].
+    2. **Agregación:** Se aplica la suma ponderada de las variables normalizadas.
+    3. **Corrimiento estadístico:** Se suma un valor epsilon para evitar coeficientes nulos.
+    4. **Repartición:** Se reparte el presupuesto entre las Entidades Federativas según el valor de las ponderaciones de los indicadores.
     """)
 
-    st.subheader('3.1 Fórmula de normalización')
+    st.subheader('3.1 Normalización')
     st.latex(r'''
     V_{i,j} = \frac{X_{i,j} - X_{i, \min}}{X_{i, \max} - X_{i, \min}}\\
     \text{ }\\
@@ -378,8 +386,9 @@ with tab3:
     V_{i,j} = \text{Valor normalizado del indicador i para la Entidad Federativa j}\\
     X_{i,j} = \text{Indicador i de la Entidad Federativa j}\\
     ''')
-
-    st.subheader('3.2 Fórmula del Índice de Asignación')
+    st.markdown('`Inversión: Las variables negativas se invierten para que una tasa baja resulte en un valor normalizado alto (cercano a 1).`')
+    
+    st.subheader('3.2 Agregación del Índice')
     st.latex(r'''
     I_j = \sum_{i=1}^{n}( V_{i,j} \times W_i)\\
     \text{ }\\
@@ -389,12 +398,13 @@ with tab3:
     V_{i,j} = \text{Valor normalizado del indicador i para la Entidad Federativa j}\\
     W_i = \text{Ponderación del indicador i}\\
     ''')
+    st.markdown('`Re-escalado: El índice final se re-escala [0, 1] para facilitar la interpretación del rendimiento relativo.`')
 
-    st.subheader('3.3 Fórmula de Corrimiento Estadístico')
+    st.subheader('3.3 Corrimiento Estadístico')
     st.markdown('''
     La fórmula opera sobre el índice normalizado (con rango [0,1]) usando una constante pequeña y positiva, ϵ.
 
-    1. Compresión del Rango: (indice_normalizado * (1−ϵ))
+    ##### 3.3.1  Compresión del Rango: (indice_normalizado * (1−ϵ))
 
     **Objetivo: Comprimir el rango de los valores normalizados.**
 
@@ -402,8 +412,8 @@ with tab3:
     - El rango original [0,1] se convierte en [0,1−ϵ].
     - El valor mínimo (0) se mantiene en 0×(1−ϵ)=0.
     - El valor máximo (1) se reduce a 1×(1−ϵ)=1−ϵ.
-
-    2. Corrimiento hacia arriba (Shift): +ϵ
+    
+    ##### 3.3.2 Corrimiento hacia arriba (Shift): +ϵ
 
     **Objetivo: Desplazar todo el conjunto de datos hacia arriba por la cantidad ϵ.**
 
@@ -413,8 +423,6 @@ with tab3:
     - El máximo, que era 1−ϵ, ahora es (1−ϵ)+ϵ=1.
     
     
-    ##### Tabla de Resultados del Corrimiento Estadístico
-
     |Indice normalizado|Transformación|Valor Final|
     |:---:|:---:|:---:|
     |0 (mínimo)|(0 * (1−ϵ)) + ϵ|ϵ|
@@ -422,6 +430,11 @@ with tab3:
 
     ''')
 
+    st.subheader('3.4 Repartición del Presupuesto')
+    st.markdown('''
+    Se calcula la participación porcentual de cada Entidad Federativa en el índice total
+    y se distribuye el fondo total entre cada una de acuerdo a su participación porcentual.
+    ''')
 
     st.markdown('---')
     st.markdown('*Dirección General de Planeación*')
