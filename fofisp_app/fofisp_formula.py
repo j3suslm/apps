@@ -227,8 +227,8 @@ with tab1:
     st.subheader('1. Introducción')
     st.markdown('''
 
-    El monto autorizado en el **Presupuesto de Egresos de la Federación (PEF)** para el **Fondo para el 
-    Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2026** es:
+    El `monto estimado` en el **Presupuesto de Egresos de la Federación** (PEF) para el **Fondo para el 
+    Fortalecimiento de las Instituciones de Seguridad Pública** (FOFISP) **2026** es:
 
     ##### $1,155,443,263.97
 
@@ -281,12 +281,13 @@ with tab2:
 
     # Mostrar la tabla final de resultados
     st.subheader("2.3 Resultados")
-    st.markdown('**Indices**')
-    st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)', 'Indice Final (Corrimiento)']].sort_values(by='Indice Final (0-1)', ascending=False),
-                use_container_width=True,
-                column_config={
-                    "Indice Final (Corrimiento)": st.column_config.ProgressColumn("Indice Final (Corrimiento)", format="%.3f", min_value=0.0, max_value=1.0)
-                })
+    #st.markdown('**Indices**')
+    #st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)', 'Indice Final (Corrimiento)']].sort_values(by='Indice Final (0-1)', ascending=False),
+    #            use_container_width=True,
+    #            column_config={
+    #                "Indice Final (Corrimiento)": st.column_config.ProgressColumn("Indice Final (Corrimiento)", format="%.3f", min_value=0.0, max_value=1.0)
+    #            })
+
 
     st.markdown('**Importes Asignados por Entidad Federativa**')
 
@@ -295,33 +296,52 @@ with tab2:
     total_indice = df_results['Indice Final (Corrimiento)'].sum()
     # create share weights
     df_results['Reparto'] = df_results['Indice Final (Corrimiento)'] / total_indice
-    # allocate funds
+    # Var%funds
     df_results['Importe_asignado'] = df_results['Reparto'] * presupuesto
     # validate allocated budget
-    #st.dataframe(df_results[['Importe_asignado']].sum())
-    
-    st.dataframe(df_results[['Entidad_Federativa','Pob_norm','Var_edo_fza_norm','Var_incidencia_del_norm',
-        'Academias_norm','Indice Normalizado','Indice Final (0-1)','Indice Final (Corrimiento)','Importe_asignado']])
+    #stVar%dataframe(df_results[['Importe_asign/do']].sum()) -Var%    
+
+    # create diff amount and percentage
+    df_results['Var%'] = df_results['Importe_asignado'] / df_results['Asignacion_2025'] -1
+
+    df_end = (
+        df_results[['Entidad_Federativa','Indice Normalizado','Indice Final (0-1)','Indice Final (Corrimiento)',
+                'Importe_asignado','Asignacion_2025','Var%']]
+                .style
+                .format({
+                        'Importe_asignado': '${:,.2f}',
+                        'Asignacion_2025': '${:,.2f}',
+                        'Var%': '{:.2%}',
+                        'Indice Normalizado':'{:.4f}',
+                        'Indice Final (0-1)':'{:.4f}',
+                        'Indice Final (Corrimiento':'{:.4f}',
+                        })
+    )
+
+    st.dataframe(df_end)
 
     st.subheader("2.4 Asignación Final por Entidad Federativa")
 
-    # Gráfico de barras interactivo con Plotly
+    # Gráfico de barras de asignacion de fondos
     fig = px.bar(
         df_results,
         x='Entidad_Federativa',
         y='Importe_asignado',
         text='Importe_asignado',
-        title=f"Ponderaciones: Población={w_pob*100:.0f}%, Estado de fuerza={w_var_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%)",
+        title=f"Ponderaciones: -1 Población={w_pob*100:.0f}%, Estado de fuerza={w_var_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%)",
         template='ggplot2',
         hover_data={
             'Entidad_Federativa':False,
-            'Indice Normalizado':False, # remove from hover data
-            'Importe_asignado':':,.2f', # customize hover for column of y attribute
+            'Importe_asignado':':$,.2f', # customize hover for column of y attribute
+            'Var%':':.2%',
             },
-        labels={'Entidad_Federativa':'Entidad Federativa',
-            'Importe_asignado':'Importe asignado',},
+        labels={
+            'Entidad_Federativa':'Entidad Federativa',
+            'Importe_asignado':'Asignación',
+            'Var%':'Variación',
+            },
     )
-
+    
     fig.update_traces(
         textposition='outside',
         marker_color='#691c32',
@@ -363,6 +383,67 @@ with tab2:
         )
     
     st.plotly_chart(fig, use_container_width=True)
+
+
+    # Gráfico de barras de variación de asignacion de fondos respecto al año anterior
+    fig_var = px.bar(
+        df_results,
+        x='Entidad_Federativa',
+        y='Var%',
+        text='Var%',
+        title=f"Variación en la Asignación de Fondos con respecto al Ejercicio Anterior",
+        template='ggplot2',
+        hover_data={
+            'Entidad_Federativa':False,
+            'Var%':':.2%',
+            },
+        labels={
+            'Entidad_Federativa':'Entidad Federativa',
+            'Var%':'Variación',
+            },
+    )
+    
+    fig_var.update_traces(
+        textposition='outside',
+        marker_color='#bc955c',
+        opacity=0.9,
+        marker_line_color='#6f7271',
+        marker_line_width=1.2,
+        texttemplate='%{text:.2%}',
+        textfont_size=20,
+        )
+
+    fig_var.update_layout(
+        uniformtext_minsize=8, uniformtext_mode='hide',
+        hovermode="x unified",
+        autosize=True,
+        height=600,
+        xaxis_title='',
+        yaxis_title='Variación %',
+        hoverlabel=dict(
+            bgcolor="#fff",
+            font_size=16,
+            font_family="Noto Sans",
+            )
+        )
+
+    fig_var.update_xaxes(
+        showgrid=True,
+        title_font=dict(size=18, family='Noto Sans', color='#bc955c'),  # X-axis title font size
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),  # X-axis tick label font size
+        tickangle=-75,
+        )
+
+    fig_var.update_yaxes(
+        tickformat='.0%',
+        showgrid=True,
+        title_font=dict(size=16, family='Noto Sans', color='#28282b'),
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),
+        tickangle=0,
+        )
+    
+    st.plotly_chart(fig_var, use_container_width=True)
+
 
     st.markdown('---')
     st.markdown('*Dirección General de Planeación*')
