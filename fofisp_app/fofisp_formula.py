@@ -155,13 +155,13 @@ fofisp_datos_entrada2 = fofisp_datos_entrada.copy()
 fofisp_datos_entrada2.index = pd.RangeIndex(start=1, stop=33, step=1)
 fofisp_datos_entrada2 = (
     fofisp_datos_entrada2
-        .style.format(
-            {'Población': '{:,.2f}',
+        .style.format({
+            'Población': '{:,.2f}',
             'Var_incidencia_del':'{:.2f}%',
             'Var_edo_fza':'{:.2f}%',
-            }
-        )
-)
+            'Asignacion_2025': '{:,.2f}',
+            })
+    )
 
 
 # --- Funciones de Cálculo del Índice ---
@@ -227,7 +227,7 @@ with tab1:
     st.subheader('1. Introducción')
     st.markdown('''
 
-    El `monto estimado` en el **Presupuesto de Egresos de la Federación** (PEF) para el **Fondo para el 
+    El *monto estimado* en el **Presupuesto de Egresos de la Federación** (PEF) para el **Fondo para el 
     Fortalecimiento de las Instituciones de Seguridad Pública** (FOFISP) **2026** es:
 
     ##### $1,155,443,263.97
@@ -266,21 +266,22 @@ with tab2:
     st.markdown("Estos son los datos utilizados en el modelo:")
     st.dataframe(fofisp_datos_entrada2, use_container_width=True)
 
-    st.subheader("2.2 Normalización de datos")
-    st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
-    df_normalized = df_results[['Pob_norm', 'Var_edo_fza_norm', 'Var_incidencia_del_norm', 'Academias_norm']]
-    # Renombrar columnas para mejor visualización
-    df_normalized.columns = ['Pob_norm (Alto=Bueno)', 'Var_edo_fza_norm (Alto=Bueno)', 'Var_incidencia_del_norm (Bajo=Malo -> Invertida)', 'Academias_norm (Alto=Bueno)']
-    st.dataframe(df_normalized, use_container_width=True,
-                column_config={
-                    "Pob_norm (Alto=Bueno)": st.column_config.ProgressColumn("Pob_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                    "Var_edo_fza_norm (Alto=Bueno)": st.column_config.ProgressColumn("Var_Edo_fza_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                    "Var_incidencia_del_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Var_incidencia_del_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0),
-                    "Academias_norm (Alto=Bueno)": st.column_config.ProgressColumn("Academias_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-                })
 
+    #st.subheader("2.2 Normalización de datos")
+    #st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
+    #df_normalized = df_results[['Pob_norm', 'Var_edo_fza_norm', 'Var_incidencia_del_norm', 'Academias_norm']]
+    # Renombrar columnas para mejor visualización
+    #df_normalized.columns = ['Pob_norm (Alto=Bueno)', 'Var_edo_fza_norm (Alto=Bueno)', 'Var_incidencia_del_norm (Bajo=Malo -> Invertida)', 'Academias_norm (Alto=Bueno)']
+    #st.dataframe(df_normalized, use_container_width=True,
+    #            column_config={
+    #                "Pob_norm (Alto=Bueno)": st.column_config.ProgressColumn("Pob_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+    #                "Var_edo_fza_norm (Alto=Bueno)": st.column_config.ProgressColumn("Var_Edo_fza_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+    #                "Var_incidencia_del_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Var_incidencia_del_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0),
+    #                "Academias_norm (Alto=Bueno)": st.column_config.ProgressColumn("Academias_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
+    #            })
+    
     # Mostrar la tabla final de resultados
-    st.subheader("2.3 Resultados")
+    st.subheader("2.2 Resultados")
     #st.markdown('**Indices**')
     #st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)', 'Indice Final (Corrimiento)']].sort_values(by='Indice Final (0-1)', ascending=False),
     #            use_container_width=True,
@@ -289,7 +290,6 @@ with tab2:
     #            })
 
 
-    st.markdown('**Importes Asignados por Entidad Federativa**')
 
     # reckon end allocated amount
     # sum final index
@@ -319,8 +319,10 @@ with tab2:
     )
 
     st.dataframe(df_end)
+    st.caption('Asignación y Variación respecto al Ejercicio Anterior por Entidad Federativa')
 
-    st.subheader("2.4 Asignación Final por Entidad Federativa")
+
+    st.subheader("2.3 Asignación por Entidad Federativa")
 
     # Gráfico de barras de asignacion de fondos
     fig = px.bar(
