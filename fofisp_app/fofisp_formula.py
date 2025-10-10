@@ -232,11 +232,11 @@ with tab1:
 
     ##### $1,155,443,263.97
 
-    Los Indicadores de asignación utilizados en este modelo son los siguientes:
     ''')
 
     st.html(indicadores)
-    
+    st.caption('Indicadores utilizados para la asignación de fondos y ponderaciones predeterminadas.')
+
     st.markdown('''
     ##### ¿Cómo funciona esta aplicación?
     
@@ -263,9 +263,8 @@ with tab1:
 with tab2:
     st.header('2. Fórmula de Asignación')
     st.subheader("2.1 Datos de Entrada")
-    st.markdown("Estos son los datos utilizados en el modelo:")
     st.dataframe(fofisp_datos_entrada2, use_container_width=True)
-
+    st.caption('Variables utilizadas en el modelo para la asignación de fondos.')
 
     #st.subheader("2.2 Normalización de datos")
     #st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
@@ -305,20 +304,26 @@ with tab2:
     df_results['Var%'] = df_results['Importe_asignado'] / df_results['Asignacion_2025'] -1
 
     df_end = (
-        df_results[['Entidad_Federativa','Indice Normalizado','Indice Final (0-1)','Indice Final (Corrimiento)',
-                'Importe_asignado','Asignacion_2025','Var%']]
+        df_results[['Entidad_Federativa','Importe_asignado','Asignacion_2025','Var%']]
                 .style
                 .format({
                         'Importe_asignado': '${:,.2f}',
                         'Asignacion_2025': '${:,.2f}',
                         'Var%': '{:.2%}',
-                        'Indice Normalizado':'{:.4f}',
-                        'Indice Final (0-1)':'{:.4f}',
-                        'Indice Final (Corrimiento':'{:.4f}',
+                        #'Indice Normalizado':'{:.4f}',
+                        #'Indice Final (0-1)':'{:.4f}',
+                        #'Indice Final (Corrimiento':'{:.4f}',
                         })
     )
 
-    st.dataframe(df_end)
+    st.dataframe(df_end,
+        column_config={
+            "Importe_asignado": st.column_config.ProgressColumn("Importe_asignado", format="dollar", min_value=-1_000_000, max_value=170_000_000),
+            "Asignacion_2025": st.column_config.ProgressColumn("Asignacion_2025", format="dollar", min_value=-1_000_000, max_value=170_000_000),
+            #"Var%": st.column_config.ProgressColumn("Var%", format="percent", min_value=-1.0, max_value=1.0),
+            },
+        )
+
     st.caption('Asignación y Variación respecto al Ejercicio Anterior por Entidad Federativa')
 
 
