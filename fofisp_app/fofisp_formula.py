@@ -6,6 +6,9 @@ import polars as pl
 import plotly.express as px
 from PIL import Image
 from great_tables import GT, md
+import os
+from dotenv import load_dotenv
+load_dotenv('.env')
 
 
 # web app settings
@@ -27,12 +30,32 @@ im = Image.open('logo.png')
 st.set_page_config(layout="wide", page_title="Fórmula FOFISP", page_icon=im)
 
 # set title and subtitle
-st.markdown("<h1><span style='color: #691c32;'>Fórmula para la Asignación FOFISP</span></h1>",
+st.markdown("<h1><span style='color: #691c32;'>Asignación del Fondo FOFISP</span></h1>",
     unsafe_allow_html=True)
 
 # author, date
 st.caption('Jesús LM')
 st.caption('Octubre, 2025')
+
+
+# this code block is used to authenticate by password
+password = os.getenv('MY_PASSWORD')
+# Initialize session state if not already set
+if 'password_correct' not in st.session_state:
+    st.session_state.password_correct = False
+
+# If password is not correct, ask for it
+if not st.session_state.password_correct:
+    password_guess = st.text_input('¡Escribe el password para acceder!')
+        
+    if password_guess == password:
+        st.session_state.password_correct = True
+        st.rerun()
+    else:
+        st.stop()
+
+# This code runs only when the password is correct
+st.success('¡Acceso concedido!')
 
 
 # --- sidebar
