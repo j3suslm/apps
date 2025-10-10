@@ -27,7 +27,7 @@ hide_default_format = """
 im = Image.open('logo.png')
 
 # page layout config and add image
-st.set_page_config(layout="wide", page_title="Fórmula FOFISP", page_icon=im)
+st.set_page_config(layout="wide", page_title="FOFISP App", page_icon=im)
 
 # set title and subtitle
 st.markdown("<h1><span style='color: #691c32;'>Asignación del Fondo FOFISP</span></h1>",

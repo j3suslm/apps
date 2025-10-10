@@ -37,19 +37,14 @@ def main():
     # set image
     #st.image('https://sfpya.edomexico.gob.mx/participaciones/imagenes/FORTAMUN.png', width=200)
     # set title and subtitle
-    st.markdown("<h1><span style='color: #691c32;'>Asignación del Fondo FORTAMUN</span></h1>",
+    st.markdown("<h1><span style='color: #691c32;'>Fortamun Municipios Beneficiados</span></h1>",
         unsafe_allow_html=True)
     #st.write('Cálculo de la muestra del 10%')
     
-
     # content image
     #st.image('https://sesespem.edomex.gob.mx/sites/sesespem.edomex.gob.mx/files/images/DGFYS/FORTAMUN%201-25.jpg',
     #    caption='Figura 1. ¿Qués es el Fortamun?')
     
-    # author, date
-    st.caption('Jesús LM')
-    st.caption('Agosto, 2025')
-
 
     # this code block is used to authenticate by password
     password = os.getenv('password')
@@ -70,7 +65,7 @@ def main():
     # This code runs only when the password is correct
     st.success('¡Acceso concedido!')
 
-
+    
     # paso 1
     st.markdown("<h3><span style='color: #bc955c;'>Sube el archivo</span></h3>",
         unsafe_allow_html=True)
@@ -276,7 +271,7 @@ def main():
         
         
     # contacto
-    st.caption('Dirección General de Planeación')
+    st.caption('Jesús LM')
 
 
 if __name__ == "__main__":
