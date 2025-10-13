@@ -13,7 +13,7 @@ def main():
     # load image
     im = Image.open('logo.png')
     # add image
-    st.set_page_config(page_title="ENSU", page_icon = im, layout='centered')
+    st.set_page_config(page_title="ENSU", page_icon = im, layout='wide')
 
     # hide streamlit logo and footer
     hide_default_format = """
@@ -37,26 +37,22 @@ def main():
 
     # sidebar image and text
     st.sidebar.image('sesnsp.png')
-    st.sidebar.caption("Dirección General de Planeación")
+    
     # header
-    st.sidebar.markdown('### Introducción')
     st.sidebar.write('''
-        La confianza de la ciudadanía en sus cuerpos policiales es un pilar fundamental para la seguridad y la
-        gobernabilidad en cualquier nación.
-        En México, esta percepción es monitoreada por el Instituto Nacional de Estadística y Geografía
-        (INEGI) a través de la Encuesta Nacional de Seguridad Pública Urbana (ENSU), cuyos
-        resultados ofrecen una fotografía sobre el sentir de la población respecto al desempeño y
+        En esta aplicación se muestran los resultados de la Encuesta Nacional de Seguridad Pública Urbana (ENSU),
+        cuyos resultados ofrecen una fotografía sobre el sentir de la población respecto al desempeño y
         la fiabilidad de la policía estatal.
     ''')
     st.sidebar.write('')
-    st.sidebar.caption("© 2025")
-    
+    st.sidebar.caption("Dirección General de Planeación")
+
     # customize color of sidebar and text
     st.markdown("""
         <style>
             [data-testid=stSidebar] {
-                background-color: #691c32;
-                color: #ffff;
+                background-color: #ececec;
+                color: #28282b;
             }
         </style>
         """, unsafe_allow_html=True)

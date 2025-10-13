@@ -83,7 +83,7 @@ im = Image.open('logo.png')
 st.set_page_config(layout="wide", page_title="Fórmula FASP", page_icon=im)
 
 # set title and subtitle
-st.markdown("<h1><span style='color: #691c32;'>Fórmula para la Asignación FASP</span></h1>",
+st.markdown("<h1><span style='color: #691c32;'>Asignación del Fondo FASP</span></h1>",
     unsafe_allow_html=True)
 
 # author, date
