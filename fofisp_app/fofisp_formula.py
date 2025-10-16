@@ -349,7 +349,6 @@ with tab2:
 
     st.caption('Asignación y Variación respecto al Ejercicio Anterior por Entidad Federativa')
 
-
     st.subheader("2.3 Asignación por Entidad Federativa")
 
     # Gráfico de barras de asignacion de fondos
@@ -473,6 +472,44 @@ with tab2:
         )
     
     st.plotly_chart(fig_var, use_container_width=True)
+
+
+    st.subheader('2.4 Rebalanceo de remanente')
+    
+    # Define the tolerance level (10%)
+    TOLERANCE = 0.10
+    # Calculate Allocation Band (TMin and TMax)
+    df_results['TMin'] = df_results['Asignacion_2025'] * (1 - TOLERANCE)
+    df_results['TMax'] = df_results['Asignacion_2025'] * (1 + TOLERANCE)
+    
+    # Calculate Funds to Pool (from allocations > TMax)
+    # These are the funds we cap and re-claim.
+    df_results['Fund to Pool'] = np.where(df_results['Importe_asignado'] > df_results['TMax'],
+                                        df_results['Importe_asignado'] - df_results['TMax'],
+                                        0)
+
+    # Calculate Deficit to Cover (for allocations < TMin)
+    # These are the funds we must first cover from the pool.
+    df_results['Deficit to Cover'] = np.where(df_results['Importe_asignado'] < df_results['TMin'],
+                                            df_results['TMin'] - df_results['Importe_asignado'],
+                                            0)
+
+    # -----------------------------------------------------------
+    # PHASE 2: Calculate Net Exceeding Fund and Interim Allocation
+    # -----------------------------------------------------------
+
+    # Calculate the Net Exceeding Fund (Total Pooled Funds - Total Deficit Needed)
+    total_pooled_funds = df_results['Fund to Pool'].sum()
+    total_deficit_needed = df_results['Deficit to Cover'].sum()
+    net_exceeding_fund = total_pooled_funds - total_deficit_needed
+
+    print(f"Net Exceeding Fund available for redistribution: ${net_exceeding_fund:,.2f}\n")
+    # show results and band limits
+    st.dataframe(df_results[['Entidad_Federativa','Importe_asignado','Asignacion_2025',
+        'Var%','TMin','TMax',]])
+
+    st.caption('Entidades Federativas por encima/debajo de la banda de ±10%')
+
 
 
     st.markdown('---')

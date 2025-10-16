@@ -54,7 +54,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:
     # ========================================================================
 
     areas_minimas = pd.read_excel('data.xlsx', sheet_name='areas-minimas').fillna('').astype(str)
-    areas_minimas['Total'] = areas_minimas['Total'].str.replace('.`','')
+    areas_minimas['Total'] = areas_minimas['Total'].str.replace('.0','')
 
     areas_min = (
         GT(areas_minimas)
@@ -209,7 +209,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:
     return None
 
 
-_static_assets = ["tablero_files","images/portada.png","images/funciones.svg","images/salarios_ordenado.svg","images/aportaciones_federales_por_entidad_mapa.svg","images/aportaciones_subprograma.svg","images/rfid.svg","images/capacitacion_cursos.svg","images/sesnsp.png","tablero_files/libs/quarto-html/tippy.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-b719d3d4935f2b08311a76135e2bf442.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-dark-c8b544e1eab81f7563542c0a8b71d1e9.css","tablero_files/libs/bootstrap/bootstrap-icons.css","tablero_files/libs/bootstrap/bootstrap-57fa414b915ca0d51f41cb565a059b40.min.css","tablero_files/libs/bootstrap/bootstrap-dark-cd70e9f35e31efa67545f5aa8e8bf657.min.css","tablero_files/libs/clipboard/clipboard.min.js","tablero_files/libs/quarto-html/quarto.js","tablero_files/libs/quarto-html/tabsets/tabsets.js","tablero_files/libs/quarto-html/popper.min.js","tablero_files/libs/quarto-html/tippy.umd.min.js","tablero_files/libs/quarto-html/anchor.min.js","tablero_files/libs/bootstrap/bootstrap.min.js","tablero_files/libs/quarto-dashboard/quarto-dashboard.js","tablero_files/libs/quarto-dashboard/stickythead.js","tablero_files/libs/quarto-dashboard/web-components.js","tablero_files/libs/quarto-dashboard/components.js"]
+_static_assets = ["tablero_files","images/portada.png","images/funciones.svg","images/salarios_ordenado.svg","images/aportaciones_federales_por_entidad_mapa.svg","images/aportaciones_subprograma.svg","images/rfid.svg","images/capacitacion_cursos.svg","images/sesnsp.png","tablero_files/libs/quarto-html/tippy.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css","tablero_files/libs/quarto-html/quarto-syntax-highlighting-dark-707d8167ce6003fca903bfe2be84ab7f.css","tablero_files/libs/bootstrap/bootstrap-icons.css","tablero_files/libs/bootstrap/bootstrap-3205d2c4ad47c09be5d3d380ffc2996a.min.css","tablero_files/libs/bootstrap/bootstrap-dark-3205d2c4ad47c09be5d3d380ffc2996a.min.css","tablero_files/libs/clipboard/clipboard.min.js","tablero_files/libs/quarto-html/quarto.js","tablero_files/libs/quarto-html/tabsets/tabsets.js","tablero_files/libs/quarto-html/axe/axe-check.js","tablero_files/libs/quarto-html/popper.min.js","tablero_files/libs/quarto-html/tippy.umd.min.js","tablero_files/libs/quarto-html/anchor.min.js","tablero_files/libs/bootstrap/bootstrap.min.js","tablero_files/libs/quarto-dashboard/quarto-dashboard.js","tablero_files/libs/quarto-dashboard/stickythead.js","tablero_files/libs/quarto-dashboard/web-components.js","tablero_files/libs/quarto-dashboard/components.js"]
 _static_assets = {"/" + sa: Path(__file__).parent / sa for sa in _static_assets}
 
 app = App(

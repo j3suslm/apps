@@ -57,7 +57,7 @@ nacl_prestaciones = (
 
 ```{python}
 areas_minimas = pd.read_excel('data.xlsx', sheet_name='areas-minimas').fillna('').astype(str)
-areas_minimas['Total'] = areas_minimas['Total'].str.replace('.`','')
+areas_minimas['Total'] = areas_minimas['Total'].str.replace('.0','')
 
 areas_min = (
     GT(areas_minimas)
