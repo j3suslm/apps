@@ -553,8 +553,13 @@ with tab2:
     # Calculate the final percentage change to confirm all are within the target band
     df_results['Var%_ajustada'] = (df_results['Asignacion_ajustada'] - df_results['Asignacion_2025']) / df_results['Asignacion_2025']
     
-    df_reasignacion = (
-        df_results[['Entidad_Federativa','Asignacion_2025','Asignacion_2026','Var%','Asignacion_ajustada','Var%_ajustada']]
+    df_reasignacion = df_results.copy()
+    # create percentages
+    df_reasignacion['Var%'] = df_reasignacion['Var%']*100
+    df_reasignacion['Var%_ajustada'] = df_reasignacion['Var%_ajustada']*100
+
+    df_reasignacion2 = (
+        df_reasignacion[['Entidad_Federativa','Asignacion_2025','Asignacion_2026','Var%','Asignacion_ajustada','Var%_ajustada']]
         .style.format({
             'Asignacion_2025': '${:,.2f}',
             'Asignacion_2026': '${:,.2f}',
@@ -568,7 +573,7 @@ with tab2:
         En esta tabla se muestra el importe reasignado así como la variación ajustada.
     ''')
 
-    st.dataframe(df_reasignacion)
+    st.dataframe(df_reasignacion2)
     # validar que la suma de reasignacion ajustada sea igual al presupuesto inicial 2026
     #st.dataframe(pd.Series(df_results['Asignacion_ajustada'].sum()))
     st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de ±10%')
@@ -576,8 +581,8 @@ with tab2:
     # grafico2
     # Gráfico de barras de reasignacion de remanente 2026 vs 2025
     fig2 = go.Figure(data=[
-        go.Bar(name='Año 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#691c32',),
-        go.Bar(name='Año 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#bc955c',)
+        go.Bar(name='Ejercicio 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#691c32',),
+        go.Bar(name='Ejercicio 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#bc955c',)
     ])
 
     # Update layout to group bars
