@@ -1,9 +1,10 @@
 # libraries
 import streamlit as st
-import pandas as pd
 import numpy as np
+import pandas as pd
 import polars as pl
 import plotly.express as px
+import plotly.graph_objects as go
 from PIL import Image
 from great_tables import GT, md
 import os
@@ -24,7 +25,7 @@ hide_default_format = """
     """
 
 # load icon image
-im = Image.open('logo.png')
+im = Image.open('images/logo.png')
 
 # page layout config and add image
 st.set_page_config(layout="wide", page_title="FOFISP App", page_icon=im)
@@ -55,12 +56,12 @@ if not st.session_state.password_correct:
         st.stop()
 
 # This code runs only when the password is correct
-st.success('¡Acceso concedido!')
+st.success('¡Bienvenido!')
 
 
 # --- sidebar
 # sidebar image and text
-st.sidebar.image('sesnsp.png')
+st.sidebar.image('images/sesnsp.png')
 
 # ponderadores
 st.markdown(hide_default_format, unsafe_allow_html=True)
@@ -92,9 +93,9 @@ w_pob = st.sidebar.slider(
     'Población (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.75, step=0.05, key='Población'
 )
-w_var_edo_fza = st.sidebar.slider(
-    'Incremento estado de fuerza (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Incremento estado de fuerza'
+w_edo_fza = st.sidebar.slider(
+    'Tasa policial (Alto=Bueno)',
+    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Tasa policial'
 )
 w_var_incidencia_del = st.sidebar.slider(
     'Variación incidencia delictiva (Alto=Malo)',
@@ -107,29 +108,29 @@ w_academias = st.sidebar.slider(
 
 
 # Asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
-total_sum = w_pob + w_var_edo_fza + w_var_incidencia_del + w_academias
+total_sum = w_pob + w_edo_fza + w_var_incidencia_del + w_academias
 st.sidebar.markdown('---')
 st.sidebar.markdown(f'Suma de ponderaciones: {total_sum:.2f}')
 
 if total_sum != 1.0:
     # Ajustar el peso más pequeño (o cualquier otro) para que sume 1
     w_pob = w_pob / total_sum
-    w_var_edo_fza = w_var_edo_fza / total_sum
+    w_edo_fza = w_edo_fza / total_sum
     w_var_incidencia_del = w_var_incidencia_del / total_sum
     w_academias = w_academias / total_sum
     # Redondeamos para fines de presentación, aunque los cálculos usan el valor exacto
-    st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_var_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
+    st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
 
 weights = {
     'Población': w_pob,
-    'Var_edo_fza': w_var_edo_fza,
+    'Tasa_policial': w_edo_fza,
     'Var_incidencia_del': w_var_incidencia_del,
     'Academias': w_academias,
 }
 
 
 # tabla de indicadores
-indicadores_fofisp = pd.read_csv('indicadores_fofisp.csv')
+indicadores_fofisp = pd.read_csv('data/indicadores_fofisp.csv')
 indicadores_fofisp['Categoría'] = indicadores_fofisp['Categoría'].fillna('')
 indicadores_fofisp['Ponderación_categoría'] = indicadores_fofisp['Ponderación_categoría'].fillna(0)
 
@@ -172,17 +173,18 @@ indicadores = (
 )
 
 # entry variables dataset
-fofisp_datos_entrada = pd.read_csv('fofisp_datos_entrada.csv')
+fofisp_datos_entrada = pd.read_csv('data/fofisp_datos_entrada.csv')
 # change index to start at 1, must specify last limit
 fofisp_datos_entrada2 = fofisp_datos_entrada.copy()
 fofisp_datos_entrada2.index = pd.RangeIndex(start=1, stop=33, step=1)
+fofisp_datos_entrada2['Var_incidencia_del'] = fofisp_datos_entrada2['Var_incidencia_del']*100
 fofisp_datos_entrada2 = (
     fofisp_datos_entrada2
         .style.format({
             'Población': '{:,.2f}',
             'Var_incidencia_del':'{:.2f}%',
-            'Var_edo_fza':'{:.2f}%',
-            'Asignacion_2025': '{:,.2f}',
+            'Tasa_policial':'{:.2f}',
+            'Asignacion_2025': '${:,.2f}',
             })
     )
 
@@ -214,7 +216,7 @@ def calculate_index(df, weights):
     # 1. Normalización de Variables
     # variables positivas
     df['Pob_norm'] = min_max_normalize(df['Población'], direction='positive')
-    df['Var_edo_fza_norm'] = min_max_normalize(df['Var_edo_fza'], direction='positive')
+    df['Tasa_policial_norm'] = min_max_normalize(df['Tasa_policial'], direction='positive')
     df['Academias_norm'] = min_max_normalize(df['Academias'], direction='positive')
 
     # variables negativas (menos es mejor, por lo tanto, se invierte)
@@ -223,7 +225,7 @@ def calculate_index(df, weights):
     # 2. Aplicación de Ponderadores
     df['Indice Normalizado'] = (
         df['Pob_norm'] * weights['Población'] +
-        df['Var_edo_fza_norm'] * weights['Var_edo_fza'] +
+        df['Tasa_policial_norm'] * weights['Tasa_policial'] +
         df['Var_incidencia_del_norm'] * weights['Var_incidencia_del'] +
         df['Academias_norm'] * weights['Academias']
     )
@@ -241,7 +243,7 @@ df_results = calculate_index(fofisp_datos_entrada, weights)
 
 
 # tab layout
-tab1, tab2, tab3 = st.tabs(['1.Introducción', '2.Fórmula', '3.Nota metodológica'])
+tab1, tab2, tab3 = st.tabs(['1.Introducción', '2.Cálculo', '3.Nota metodológica'])
 
 with tab1:
     presupuesto = 1_155_443_263.97
@@ -258,7 +260,7 @@ with tab1:
     ''')
 
     st.html(indicadores)
-    st.caption('Indicadores utilizados para la asignación de fondos y ponderaciones predeterminadas.')
+    st.caption('Tabla 1. Indicadores utilizados para la asignación de fondos y ponderaciones predeterminadas.')
 
     st.markdown('''
     ##### ¿Cómo funciona esta aplicación?
@@ -279,94 +281,68 @@ with tab1:
     
     ---
 
-    *Dirección General de Planeación*
+    *© Dirección General de Planeación*
     ''')
 
 
 with tab2:
-    st.header('2. Fórmula de Asignación')
+    st.header('2. Cálculo de Asignación')
     st.subheader("2.1 Datos de Entrada")
     st.dataframe(fofisp_datos_entrada2, use_container_width=True)
-    st.caption('Variables utilizadas en el modelo para la asignación de fondos.')
+    st.caption('Tabla 2. Variables utilizadas en el modelo para la asignación de fondos.')
 
-    #st.subheader("2.2 Normalización de datos")
-    #st.markdown("Valores transformados en el rango [0, 1], listos para ser ponderados:")
-    #df_normalized = df_results[['Pob_norm', 'Var_edo_fza_norm', 'Var_incidencia_del_norm', 'Academias_norm']]
-    # Renombrar columnas para mejor visualización
-    #df_normalized.columns = ['Pob_norm (Alto=Bueno)', 'Var_edo_fza_norm (Alto=Bueno)', 'Var_incidencia_del_norm (Bajo=Malo -> Invertida)', 'Academias_norm (Alto=Bueno)']
-    #st.dataframe(df_normalized, use_container_width=True,
-    #            column_config={
-    #                "Pob_norm (Alto=Bueno)": st.column_config.ProgressColumn("Pob_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-    #                "Var_edo_fza_norm (Alto=Bueno)": st.column_config.ProgressColumn("Var_Edo_fza_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-    #                "Var_incidencia_del_norm (Bajo=Malo -> Invertida)": st.column_config.ProgressColumn("Var_incidencia_del_norm (Bajo=Malo -> Invertida)", format="%.2f", min_value=0.0, max_value=1.0),
-    #                "Academias_norm (Alto=Bueno)": st.column_config.ProgressColumn("Academias_norm (Alto=Bueno)", format="%.2f", min_value=0.0, max_value=1.0),
-    #            })
-    
+
     # Mostrar la tabla final de resultados
     st.subheader("2.2 Resultados")
-    #st.markdown('**Indices**')
-    #st.dataframe(df_results[['Indice Normalizado', 'Indice Final (0-1)', 'Indice Final (Corrimiento)']].sort_values(by='Indice Final (0-1)', ascending=False),
-    #            use_container_width=True,
-    #            column_config={
-    #                "Indice Final (Corrimiento)": st.column_config.ProgressColumn("Indice Final (Corrimiento)", format="%.3f", min_value=0.0, max_value=1.0)
-    #            })
-
-
-
     # reckon end allocated amount
     # sum final index
     total_indice = df_results['Indice Final (Corrimiento)'].sum()
     # create share weights
     df_results['Reparto'] = df_results['Indice Final (Corrimiento)'] / total_indice
     # Var%funds
-    df_results['Importe_asignado'] = df_results['Reparto'] * presupuesto
+    df_results['Asignacion_2026'] = df_results['Reparto'] * presupuesto
     # validate allocated budget
-    #stVar%dataframe(df_results[['Importe_asign/do']].sum()) -Var%    
+    #stVar%dataframe(df_results[['Asignacion_2026']].sum()) -Var%    
 
     # create diff amount and percentage
-    df_results['Var%'] = df_results['Importe_asignado'] / df_results['Asignacion_2025'] -1
+    df_results['Var%'] = df_results['Asignacion_2026'] / df_results['Asignacion_2025'] -1
 
     df_end = (
-        df_results[['Entidad_Federativa','Importe_asignado','Asignacion_2025','Var%']]
+        df_results[['Entidad_Federativa','Asignacion_2026','Asignacion_2025','Var%']]
                 .style
                 .format({
-                        'Importe_asignado': '${:,.2f}',
+                        'Asignacion_2026': '${:,.2f}',
                         'Asignacion_2025': '${:,.2f}',
                         'Var%': '{:.2%}',
-                        #'Indice Normalizado':'{:.4f}',
-                        #'Indice Final (0-1)':'{:.4f}',
-                        #'Indice Final (Corrimiento':'{:.4f}',
                         })
     )
 
-    st.dataframe(df_end,
-        column_config={
-            "Importe_asignado": st.column_config.ProgressColumn("Importe_asignado", format="dollar", min_value=-1_000_000, max_value=170_000_000),
-            "Asignacion_2025": st.column_config.ProgressColumn("Asignacion_2025", format="dollar", min_value=-1_000_000, max_value=170_000_000),
-            #"Var%": st.column_config.ProgressColumn("Var%", format="percent", min_value=-1.0, max_value=1.0),
-            },
-        )
-
-    st.caption('Asignación y Variación respecto al Ejercicio Anterior por Entidad Federativa')
-
-    st.subheader("2.3 Asignación por Entidad Federativa")
+    #st.dataframe(df_end,
+    #    column_config={
+    #        "Asignacion_2026": st.column_config.ProgressColumn("Asignacion_2026", format="dollar", min_value=-1_000_000, max_value=170_000_000),
+    #        "Asignacion_2025": st.column_config.ProgressColumn("Asignacion_2025", format="dollar", min_value=-1_000_000, max_value=170_000_000),
+    #        #"Var%": st.column_config.ProgressColumn("Var%", format="percent", min_value=-1.0, max_value=1.0),
+    #        },
+    #    )
+    #st.caption('Asignación y Variación respecto al Ejercicio Anterior por Entidad Federativa')
+    #st.subheader("2.3 Asignación por Entidad Federativa")
 
     # Gráfico de barras de asignacion de fondos
     fig = px.bar(
         df_results,
         x='Entidad_Federativa',
-        y='Importe_asignado',
-        text='Importe_asignado',
-        title=f"Ponderaciones: -1 Población={w_pob*100:.0f}%, Estado de fuerza={w_var_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%)",
+        y='Asignacion_2026',
+        text='Asignacion_2026',
+        title=f"Población={w_pob*100:.0f}%, Tasa policial={w_edo_fza*100:.0f}%, Incidencia delictiva={w_var_incidencia_del*100:.0f}%, Academias={w_academias*100:.0f}%",
         template='ggplot2',
         hover_data={
             'Entidad_Federativa':False,
-            'Importe_asignado':':$,.2f', # customize hover for column of y attribute
+            'Asignacion_2026':':$,.2f', # customize hover for column of y attribute
             'Var%':':.2%',
             },
         labels={
             'Entidad_Federativa':'Entidad Federativa',
-            'Importe_asignado':'Asignación',
+            'Asignacion_2026':'Asignación 2026',
             'Var%':'Variación',
             },
     )
@@ -387,7 +363,7 @@ with tab2:
         autosize=True,
         height=600,
         xaxis_title='',
-        yaxis_title='Importe asignado',
+        yaxis_title='Asignacion 2026',
         hoverlabel=dict(
             bgcolor="#fff",
             font_size=16,
@@ -474,46 +450,184 @@ with tab2:
     st.plotly_chart(fig_var, use_container_width=True)
 
 
-    st.subheader('2.4 Rebalanceo de remanente')
+    st.subheader('2.3 Rebalanceo de remanente')
+    st.markdown('''
+    Se estableció una banda de ±10% para el importe asignado 2026 en relación al asignado 2025.
     
+    A continuación, podemos observar la aplicación de estas bandas a las Entidades Federativas en la asignación 2026.
+    ''')
+
     # Define the tolerance level (10%)
-    TOLERANCE = 0.10
-    # Calculate Allocation Band (TMin and TMax)
-    df_results['TMin'] = df_results['Asignacion_2025'] * (1 - TOLERANCE)
-    df_results['TMax'] = df_results['Asignacion_2025'] * (1 + TOLERANCE)
+    tolerancia = 0.1
+    # Calculate Allocation Band (Min and Max)
+    df_results['Min'] = df_results['Asignacion_2025'] * (1 - tolerancia)
+    df_results['Max'] = df_results['Asignacion_2025'] * (1 + tolerancia)
     
-    # Calculate Funds to Pool (from allocations > TMax)
-    # These are the funds we cap and re-claim.
-    df_results['Fund to Pool'] = np.where(df_results['Importe_asignado'] > df_results['TMax'],
-                                        df_results['Importe_asignado'] - df_results['TMax'],
-                                        0)
+    # Calculate Funds to Pool (from allocations > Max)
+    # These are the funds we cap and re-claim
+    df_results['Superavit'] = np.where(df_results['Asignacion_2026'] > df_results['Max'],
+                                    df_results['Asignacion_2026'] - df_results['Max'],
+                                    0)
 
-    # Calculate Deficit to Cover (for allocations < TMin)
-    # These are the funds we must first cover from the pool.
-    df_results['Deficit to Cover'] = np.where(df_results['Importe_asignado'] < df_results['TMin'],
-                                            df_results['TMin'] - df_results['Importe_asignado'],
-                                            0)
+    # Calculate Deficit to Cover (for allocations < Min)
+    # These are the funds we must first cover from the pool
+    df_results['Deficit'] = np.where(df_results['Asignacion_2026'] < df_results['Min'],
+                                    df_results['Min'] - df_results['Asignacion_2026'],
+                                    0)
 
-    # -----------------------------------------------------------
     # PHASE 2: Calculate Net Exceeding Fund and Interim Allocation
-    # -----------------------------------------------------------
 
     # Calculate the Net Exceeding Fund (Total Pooled Funds - Total Deficit Needed)
-    total_pooled_funds = df_results['Fund to Pool'].sum()
-    total_deficit_needed = df_results['Deficit to Cover'].sum()
-    net_exceeding_fund = total_pooled_funds - total_deficit_needed
+    total_superavit = df_results['Superavit'].sum()
+    total_deficit = df_results['Deficit'].sum()
+    remanente = total_superavit - total_deficit
+    
+    # Define the data structure: a list of dictionaries, where each dict is a row
+    summary_data = [
+        {'Concepto': 'Superávit total', 'Importe': total_superavit},
+        {'Concepto': 'Déficit total', 'Importe': total_deficit},
+        {'Concepto': 'Remanente', 'Importe': remanente}
+    ]
 
-    print(f"Net Exceeding Fund available for redistribution: ${net_exceeding_fund:,.2f}\n")
+    # Create the new DataFrame
+    df_summary = pd.DataFrame(summary_data)
+
     # show results and band limits
-    st.dataframe(df_results[['Entidad_Federativa','Importe_asignado','Asignacion_2025',
-        'Var%','TMin','TMax',]])
+    df_bandas = df_results.copy()
+    df_bandas['Var%'] = df_bandas['Var%']*100
 
-    st.caption('Entidades Federativas por encima/debajo de la banda de ±10%')
+    # highlighting zeros
+    def highlight_zeros_yellow(value):
+        if value != 0:
+            return 'background-color: #ddc9a3'
+        return ''
+
+    # Apply the styling
+    df_bandas = (
+        df_bandas[['Entidad_Federativa','Asignacion_2025','Asignacion_2026','Var%','Min','Max','Superavit','Deficit']]
+        .style.format({
+            'Asignacion_2025': '${:,.2f}',
+            'Asignacion_2026': '${:,.2f}',
+            'Var%':'{:.2f}%',
+            'Min': '${:,.2f}',
+            'Max': '${:,.2f}',
+            'Superavit': '${:,.2f}',
+            'Deficit': '${:,.2f}',
+            })
+        .applymap(
+           highlight_zeros_yellow,
+            subset=['Superavit','Deficit']
+        )
+    )
+
+    st.dataframe(df_bandas)
+    st.caption('Tabla 3. Entidades Federativas por encima/debajo de la banda de ±10%')
+
+    st.markdown('''
+    En la siguiente tabla, se resume el superavit y deficit totales, respecto a la banda de 10% y el remanente a repartir.
+    ''')
+
+    st.dataframe(df_summary
+        .style.format({
+            'Importe': '${:,.2f}',
+            })
+    )
+    st.caption('Tabla 4. Resumen del remante')
 
 
+    # Determine Interim Allocation: Apply the caps and floors
+    # The .clip() function is perfect for this: setting min=TMin and max=TMax
+    df_results['Reasignacion'] = df_results['Asignacion_2026'].clip(lower=df_results['Min'], upper=df_results['Max'])
+    df_results['Elegibles'] = np.where(df_results['Reasignacion'] < df_results['Max'],
+                                          1,
+                                          0)
+    total_basis = df_results['Elegibles'].sum()
+    # 2. Calculate the proportional share of the net fund
+    if total_basis > 0:
+        df_results['Reparto_neto'] = (df_results['Elegibles'] / total_basis) * remanente
+    else:
+        df_results['Reparto_neto'] = 0
 
+    # 3. Calculate Final Adjusted Allocation
+    df_results['Asignacion_ajustada'] = df_results['Reasignacion'] + df_results['Reparto_neto']
+    # Calculate the final percentage change to confirm all are within the target band
+    df_results['Var%_ajustada'] = (df_results['Asignacion_ajustada'] - df_results['Asignacion_2025']) / df_results['Asignacion_2025']
+    
+    df_reasignacion = (
+        df_results[['Entidad_Federativa','Asignacion_2025','Asignacion_2026','Var%','Asignacion_ajustada','Var%_ajustada']]
+        .style.format({
+            'Asignacion_2025': '${:,.2f}',
+            'Asignacion_2026': '${:,.2f}',
+            'Var%':'{:.2f}%',
+            'Asignacion_ajustada': '${:,.2f}',
+            'Var%_ajustada':'{:.2f}%',
+            })
+    )
+
+    st.markdown('''
+        En esta tabla se muestra el importe reasignado así como la variación ajustada.
+    ''')
+
+    st.dataframe(df_reasignacion)
+    # validar que la suma de reasignacion ajustada sea igual al presupuesto inicial 2026
+    #st.dataframe(pd.Series(df_results['Asignacion_ajustada'].sum()))
+    st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de ±10%')
+
+    # grafico2
+    # Gráfico de barras de reasignacion de remanente 2026 vs 2025
+    fig2 = go.Figure(data=[
+        go.Bar(name='Año 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#691c32',),
+        go.Bar(name='Año 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#bc955c',)
+    ])
+
+    # Update layout to group bars
+    fig2.update_traces(
+        textposition='outside',
+        opacity=0.9,
+        marker_line_color='#6f7271',
+        marker_line_width=1.2,
+        texttemplate='$%{text:,.2f}',
+        textfont_size=20,
+        )
+
+    fig2.update_layout(
+        barmode='group',
+        title=f"Reasignación de Fondos por Entidad Federativa después de Remanente de la banda de ±10%",
+        template='ggplot2',
+        uniformtext_minsize=8, uniformtext_mode='hide',
+        hovermode="x unified",
+        autosize=True,
+        height=600,
+        xaxis_title='',
+        yaxis_title='Asignacion 2026',
+        hoverlabel=dict(
+            bgcolor="#fff",
+            font_size=16,
+            font_family="Noto Sans",
+            )
+        )
+
+    fig2.update_xaxes(
+        showgrid=True,
+        title_font=dict(size=18, family='Noto Sans', color='#691c32'),  # X-axis title font size
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),  # X-axis tick label font size
+        tickangle=-75,
+        )
+
+    fig2.update_yaxes(
+        tickprefix="$",
+        tickformat=',.0f',
+        showgrid=True,
+        title_font=dict(size=16, family='Noto Sans', color='#28282b'),
+        tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),
+        tickangle=0,
+        )
+    fig2.show()
+    st.plotly_chart(fig2, use_container_width=True)
+
+    
     st.markdown('---')
-    st.markdown('*Dirección General de Planeación*')
+    st.markdown('*© Dirección General de Planeación*')
 
 
 with tab3:
@@ -588,7 +702,7 @@ with tab3:
     st.markdown("[FOFISP Hoja de cálculo](https://sspcgob-my.sharepoint.com/:x:/g/personal/oscar_avila_sspc_gob_mx/EbXU_SEWtT9It8nIQ6ErUZIBdrPzlq2FxWOUv465p7-gTA?e=hfgQas)")
 
     st.markdown('---')
-    st.markdown('*Dirección General de Planeación*')
+    st.markdown('*© Dirección General de Planeación*')
 
     # Inject custom CSS to left-align KaTeX elements
     st.markdown(
