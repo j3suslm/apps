@@ -68,7 +68,7 @@ def main():
             st.stop()
 
     # This code runs only when the password is correct
-    st.success('¡Acceso concedido!')
+    st.success('¡Bienvenido!')
 
 
     # paso 1
@@ -86,7 +86,7 @@ def main():
         - Descarga los resultados
     ''')
     st.sidebar.write('')
-    st.sidebar.caption("JLM © 2025")
+    st.sidebar.caption("© 2025")
     
     # customize color of sidebar and text
     st.markdown("""
