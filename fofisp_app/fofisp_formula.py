@@ -90,19 +90,19 @@ st.markdown("""
 # Los valores se limitan para que la suma siempre sea 1
 w_pob = st.sidebar.slider(
     'Población (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.75, step=0.05, key='Población'
+    min_value=0.0, max_value=1.0, value=0.75, step=0.01, key='Población'
 )
 w_edo_fza = st.sidebar.slider(
     'Tasa policial (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Tasa policial'
+    min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Tasa policial'
 )
 w_var_incidencia_del = st.sidebar.slider(
     'Variación incidencia delictiva (Alto=Malo)',
-    min_value=0.0, max_value=1.0, value=0.10, step=0.05, key='Variación incidencia delictiva'
+    min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Variación incidencia delictiva'
 )
 w_academias = st.sidebar.slider(
     'Academias (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.05, step=0.05, key='Academias'
+    min_value=0.0, max_value=1.0, value=0.05, step=0.01, key='Academias'
 )
 
 # asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
