@@ -280,10 +280,10 @@ else:
 
         # change index to start at 1, must specify last limit
         fofisp_datos_entrada = data.copy()
-        fofisp_datos_entrada.index = pd.RangeIndex(start=1, stop=33, step=1)
-        fofisp_datos_entrada['Var_incidencia_del'] = fofisp_datos_entrada['Var_incidencia_del']*100
+        data.index = pd.RangeIndex(start=1, stop=33, step=1)
+        data['Var_incidencia_del'] = data['Var_incidencia_del']*100
         fofisp_datos_entrada2 = (
-            fofisp_datos_entrada
+            data
                 .style.format({
                     'Población': '{:,.2f}',
                     'Var_incidencia_del':'{:.2f}%',
@@ -291,6 +291,8 @@ else:
                     'Asignacion_2025': '${:,.2f}',
                     })
                 )
+
+        
 
         # --- Cálculo y Visualización ---
         # Calcular el índice
@@ -517,18 +519,21 @@ else:
             )
         )
 
-        st.dataframe(df_bandas)
+        st.dataframe(df_bandas, hide_index=True)
         st.caption('Tabla 3. Entidades Federativas por encima/debajo de la banda de ±10%')
 
         st.markdown('''
         En la siguiente tabla, se resume el superavit y deficit totales, respecto a la banda de 10% y el remanente a repartir.
         ''')
 
-        st.dataframe(df_summary
-            .style.format({
-                'Importe': '${:,.2f}',
-                })
-        )
+        
+        df_summary2 = (
+            df_summary
+                .style.format({
+                    'Importe': '${:,.2f}',
+                    })
+            )
+        st.dataframe(df_summary2, hide_index=True)
         st.caption('Tabla 4. Resumen del remante')
 
 
@@ -570,7 +575,8 @@ else:
             En esta tabla se muestra el importe reasignado así como la variación ajustada.
         ''')
 
-        st.dataframe(df_reasignacion2)
+
+        st.dataframe(df_reasignacion2, hide_index=True)
         # validar que la suma de reasignacion ajustada sea igual al presupuesto inicial 2026
         #st.dataframe(pd.Series(df_results['Asignacion_ajustada'].sum()))
         st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de ±10%')
@@ -700,6 +706,13 @@ else:
         y se distribuye el fondo total entre cada una de acuerdo a su participación porcentual.
         ''')
         
+        st.subheader('3.5 Repartición del Remanente')
+        st.markdown('''
+        Se aplican bandas del ±10% respecto al importe asignado del ejercicio anterior inmediato y se obtiene 
+        el total de importe sobrante y faltante aplicando estas bandas.
+        Posteriormente, se reparte este remanente entre las diversas Entidades Federativas para que ninguna rebase
+        las bandas del ±10%.
+        ''')
 
         st.markdown('---')
         st.markdown('*© Dirección General de Planeación*')
