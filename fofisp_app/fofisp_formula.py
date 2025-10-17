@@ -533,7 +533,7 @@ else:
                     'Importe': '${:,.2f}',
                     })
             )
-        st.dataframe(df_summary2, hide_index=True)
+        st.dataframe(df_summary2, hide_index=True, width=300)
         st.caption('Tabla 4. Resumen del remante')
 
 
