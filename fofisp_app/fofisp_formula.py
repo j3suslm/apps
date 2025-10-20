@@ -63,6 +63,14 @@ if not st.session_state.password_correct:
 # sidebar image and text
 st.sidebar.image('images/sesnsp.png')
 
+# presupuesto estimado widget
+presupuesto = st.sidebar.number_input(
+    'Presupuesto estimado',
+    value=1_155_443_263.97, placeholder='Monto del fondo', key='Presupuesto estimado', format="%f", 
+)
+presupuesto_formateado = f"${presupuesto:,.2f}"
+
+
 # ponderadores
 st.markdown(hide_default_format, unsafe_allow_html=True)
 st.sidebar.header("Ponderaciones")
@@ -86,28 +94,30 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+
+
 # sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
-w_pob = st.sidebar.slider(
+w_pob = st.sidebar.number_input(
     'Población (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.75, step=0.01, key='Población'
+    min_value=0.0, max_value=1.0, value=0.75, step=0.01, key='Población', 
 )
-w_edo_fza = st.sidebar.slider(
+w_edo_fza = st.sidebar.number_input(
     'Tasa policial (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Tasa policial'
+    min_value=0.0, max_value=1.0, value=0.15, step=0.01, key='Tasa policial'
 )
-w_var_incidencia_del = st.sidebar.slider(
+w_var_incidencia_del = st.sidebar.number_input(
     'Variación incidencia delictiva (Alto=Malo)',
     min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Variación incidencia delictiva'
 )
-w_academias = st.sidebar.slider(
+w_academias = st.sidebar.number_input(
     'Academias (Alto=Bueno)',
     min_value=0.0, max_value=1.0, value=0.05, step=0.01, key='Academias'
 )
 
 # asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
 total_sum = w_pob + w_edo_fza + w_var_incidencia_del + w_academias
-st.sidebar.markdown('---')
+#st.sidebar.markdown('---')
 st.sidebar.markdown(f'Suma de ponderaciones: {total_sum:.2f}')
 
 if total_sum != 1.0:
@@ -184,16 +194,13 @@ else:
     tab1, tab2, tab3, tab4 = st.tabs(['1.Introducción', '2.Cálculo', '3.Nota metodológica', '4.Nota técnica'])
 
     with tab1:
-        presupuesto = 1_155_443_263.97
 
         # header
         st.subheader('1. Introducción')
         st.markdown('''
 
-        El *monto estimado* en el **Presupuesto de Egresos de la Federación** (PEF) para el **Fondo para el 
-        Fortalecimiento de las Instituciones de Seguridad Pública** (FOFISP) **2026** es:
-
-        ##### $1,155,443,263.97
+        A continuación se enlistan los indicadores subyacentes para la asignación del **Fondo para el 
+        Fortalecimiento de las Instituciones de Seguridad Pública** (FOFISP) **2026**.
 
         ''')
 
@@ -224,10 +231,14 @@ else:
 
 
     with tab2:
-        st.header('2. Cálculo de Asignación')
+        #st.header('2. Cálculo de Asignación')
+        st.markdown(f'''
+            ## 2. Cálculo de Asignación 
+            #### Fondo *(Estimado)*: {presupuesto_formateado}
+        ''')
         st.subheader("2.1 Datos de Entrada")
 
-
+        
         # --- Funciones de Cálculo del Índice ---
         def min_max_normalize(series, direction='positive'):
             """
