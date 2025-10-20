@@ -100,7 +100,7 @@ st.markdown("""
 # Los valores se limitan para que la suma siempre sea 1
 w_pob = st.sidebar.number_input(
     'Población (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.75, step=0.01, key='Población', 
+    min_value=0.0, max_value=1.0, value=0.70, step=0.01, key='Población', 
 )
 w_edo_fza = st.sidebar.number_input(
     'Tasa policial (Alto=Bueno)',
@@ -233,8 +233,8 @@ else:
     with tab2:
         #st.header('2. Cálculo de Asignación')
         st.markdown(f'''
-            ## 2. Cálculo de Asignación 
-            #### Fondo *(Estimado)*: {presupuesto_formateado}
+            ## 2. Escenarios de Asignación
+            #### Cálculo con un Fondo Estimado de: *{presupuesto_formateado}*
         ''')
         st.subheader("2.1 Datos de Entrada")
 
