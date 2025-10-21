@@ -69,11 +69,20 @@ presupuesto = st.sidebar.number_input(
     value=1_155_443_263.97, placeholder='Monto del fondo', key='Presupuesto estimado', format="%f", 
 )
 presupuesto_formateado = f"${presupuesto:,.2f}"
-
+# presupuesto estimado widget
+upper_limit = st.sidebar.number_input(
+    'Banda superior',
+    value=0.1, key='Limite superior',
+)
+# presupuesto estimado widget
+lower_limit = st.sidebar.number_input(
+    'Banda inferior',
+    value=0.1, key='Limite inferior',
+)
 
 # ponderadores
 st.markdown(hide_default_format, unsafe_allow_html=True)
-st.sidebar.header("Ponderaciones")
+st.sidebar.markdown("**Ponderaciones**")
 
 # customize color of sidebar and text
 st.markdown("""
@@ -118,7 +127,9 @@ w_academias = st.sidebar.number_input(
 # asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
 total_sum = w_pob + w_edo_fza + w_var_incidencia_del + w_academias
 #st.sidebar.markdown('---')
-st.sidebar.markdown(f'Suma de ponderaciones: {total_sum:.2f}')
+formatted_sum = f"{total_sum:.0%}"
+st.sidebar.markdown(f'Suma: {formatted_sum}')
+
 
 if total_sum != 1.0:
     # ajustar el peso más pequeño (o cualquier otro) para que sume 1
@@ -127,7 +138,7 @@ if total_sum != 1.0:
     w_var_incidencia_del = w_var_incidencia_del / total_sum
     w_academias = w_academias / total_sum
     # Redondeamos para fines de presentación, aunque los cálculos usan el valor exacto
-    st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
+    #st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
 
 weights = {
     'Población': w_pob,
@@ -359,7 +370,7 @@ else:
             
         fig.update_traces(
             textposition='outside',
-            marker_color='#691c32',
+            marker_color='#235b4e',
             opacity=0.9,
             marker_line_color='#6f7271',
             marker_line_width=1.2,
@@ -420,7 +431,7 @@ else:
             
         fig_var.update_traces(
             textposition='outside',
-            marker_color='#bc955c',
+            marker_color='#9f2241',
             opacity=0.9,
             marker_line_color='#6f7271',
             marker_line_width=1.2,
@@ -467,11 +478,10 @@ else:
         A continuación, podemos observar la aplicación de estas bandas a las Entidades Federativas en la asignación 2026.
         ''')
 
-        # Define the tolerance level (10%)
-        tolerancia = 0.1
+        # Define the tolerance level
         # Calculate Allocation Band (Min and Max)
-        df_results['Min'] = df_results['Asignacion_2025'] * (1 - tolerancia)
-        df_results['Max'] = df_results['Asignacion_2025'] * (1 + tolerancia)
+        df_results['Min'] = df_results['Asignacion_2025'] * (1 - lower_limit)
+        df_results['Max'] = df_results['Asignacion_2025'] * (1 + upper_limit)
         
         # Calculate Funds to Pool (from allocations > Max)
         # These are the funds we cap and re-claim
@@ -592,11 +602,20 @@ else:
         #st.dataframe(pd.Series(df_results['Asignacion_ajustada'].sum()))
         st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de ±10%')
 
+        st.dataframe(df_results[['Asignacion_ajustada']].sum(), width=200, hide_index=True,
+            column_config={
+                '0': st.column_config.NumberColumn(
+                    'Importe total asignado',
+                    format='dollar',
+                )
+            }
+        )
+
         # grafico2
         # Gráfico de barras de reasignacion de remanente 2026 vs 2025
         fig2 = go.Figure(data=[
-            go.Bar(name='Ejercicio 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#691c32',),
-            go.Bar(name='Ejercicio 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#bc955c',)
+            go.Bar(name='Ejercicio 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#bc955c',),
+            go.Bar(name='Ejercicio 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#691c32',)
         ])
 
         # Update layout to group bars
