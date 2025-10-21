@@ -412,6 +412,9 @@ else:
 
 
         # Gráfico de barras de variación de asignacion de fondos respecto al año anterior
+        # create positive and negative colors using if and list comprehension
+        var_color = ['#235b4e' if v > 0 else '#9f2241' for v in df_results['Var%']]
+
         fig_var = px.bar(
             df_results,
             x='Entidad_Federativa',
@@ -431,7 +434,7 @@ else:
             
         fig_var.update_traces(
             textposition='outside',
-            marker_color='#9f2241',
+            marker_color=var_color,
             opacity=0.9,
             marker_line_color='#6f7271',
             marker_line_width=1.2,

@@ -7,4 +7,3 @@ pillow
 python-dotenv
 plotly
 great-tables
-
