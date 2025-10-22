@@ -59,32 +59,8 @@ if not st.session_state.password_correct:
 # this code runs only when the password is correct
 #st.success('¡Bienvenido!')
 
-# --- sidebar ---
-# sidebar image and text
-st.sidebar.image('images/sesnsp.png')
-
-# presupuesto estimado widget
-presupuesto = st.sidebar.number_input(
-    'Presupuesto estimado',
-    value=1_155_443_263.97, placeholder='Monto del fondo', key='Presupuesto estimado', format="%f", 
-)
-presupuesto_formateado = f"${presupuesto:,.2f}"
-# presupuesto estimado widget
-upper_limit = st.sidebar.number_input(
-    'Banda superior',
-    value=0.1, key='Limite superior',
-)
-# presupuesto estimado widget
-lower_limit = st.sidebar.number_input(
-    'Banda inferior',
-    value=0.1, key='Limite inferior',
-)
-
-# ponderadores
-st.markdown(hide_default_format, unsafe_allow_html=True)
-st.sidebar.markdown("**Ponderaciones**")
-
 # customize color of sidebar and text
+st.markdown(hide_default_format, unsafe_allow_html=True)
 st.markdown("""
     <style>
         /* 1. Target the main content area background */
@@ -104,41 +80,64 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 
+# --- sidebar ---
+# sidebar image and text
+st.sidebar.image('images/sesnsp.png')
+
+with st.sidebar.expander('Bandas'):
+    # presupuesto estimado widget
+    presupuesto = st.number_input(
+        'Presupuesto estimado',
+        value=1_155_443_263.97, placeholder='Monto del fondo', key='Presupuesto estimado', format="%f", 
+    )
+    presupuesto_formateado = f"${presupuesto:,.2f}"
+    # presupuesto estimado widget
+    upper_limit = st.number_input(
+        'Banda superior',
+        value=0.1, key='Limite superior',
+    )
+    # presupuesto estimado widget
+    lower_limit = st.number_input(
+        'Banda inferior',
+        value=0.1, key='Limite inferior',
+    )
+
 
 # sliders for weights
 # Los valores se limitan para que la suma siempre sea 1
-w_pob = st.sidebar.number_input(
-    'Población (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.70, step=0.01, key='Población', 
-)
-w_edo_fza = st.sidebar.number_input(
-    'Tasa policial (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.15, step=0.01, key='Tasa policial'
-)
-w_var_incidencia_del = st.sidebar.number_input(
-    'Variación incidencia delictiva (Alto=Malo)',
-    min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Variación incidencia delictiva'
-)
-w_academias = st.sidebar.number_input(
-    'Academias (Alto=Bueno)',
-    min_value=0.0, max_value=1.0, value=0.05, step=0.01, key='Academias'
-)
+with st.sidebar.expander('Ponderadores'):
+    w_pob = st.number_input(
+        'Población (Alto=Bueno)',
+        min_value=0.0, max_value=1.0, value=0.70, step=0.01, key='Población', 
+    )
+    w_edo_fza = st.number_input(
+        'Tasa policial (Alto=Bueno)',
+        min_value=0.0, max_value=1.0, value=0.15, step=0.01, key='Tasa policial'
+    )
+    w_var_incidencia_del = st.number_input(
+        'Variación incidencia delictiva (Alto=Malo)',
+        min_value=0.0, max_value=1.0, value=0.10, step=0.01, key='Variación incidencia delictiva'
+    )
+    w_academias = st.number_input(
+        'Academias (Alto=Bueno)',
+        min_value=0.0, max_value=1.0, value=0.05, step=0.01, key='Academias'
+    )
 
-# asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
-total_sum = w_pob + w_edo_fza + w_var_incidencia_del + w_academias
-#st.sidebar.markdown('---')
-formatted_sum = f"{total_sum:.0%}"
-st.sidebar.markdown(f'Suma: {formatted_sum}')
+    # asegurar que la suma sea 1.0 y ajustar el peso del último slider para cuadrar
+    total_sum = w_pob + w_edo_fza + w_var_incidencia_del + w_academias
+    #st.sidebar.markdown('---')
+    formatted_sum = f"{total_sum:.0%}"
+    st.markdown(f'Suma: {formatted_sum}')
 
 
-if total_sum != 1.0:
-    # ajustar el peso más pequeño (o cualquier otro) para que sume 1
-    w_pob = w_pob / total_sum
-    w_edo_fza = w_edo_fza / total_sum
-    w_var_incidencia_del = w_var_incidencia_del / total_sum
-    w_academias = w_academias / total_sum
-    # Redondeamos para fines de presentación, aunque los cálculos usan el valor exacto
-    #st.sidebar.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
+    if total_sum != 1.0:
+        # ajustar el peso más pequeño (o cualquier otro) para que sume 1
+        w_pob = w_pob / total_sum
+        w_edo_fza = w_edo_fza / total_sum
+        w_var_incidencia_del = w_var_incidencia_del / total_sum
+        w_academias = w_academias / total_sum
+        # Redondeamos para fines de presentación, aunque los cálculos usan el valor exacto
+        #st.markdown(f"**Suma Ajustada:** {w_pob:.2f} + {w_edo_fza:.2f} + {w_var_incidencia_del:.2f} + {w_academias:.2f} = 1.00")
 
 weights = {
     'Población': w_pob,
@@ -157,7 +156,7 @@ if uploaded_file is None:
 else:
     data = pd.read_csv(io.BytesIO(uploaded_file.getvalue()))    
 
-        # tabla de indicadores
+    # tabla de indicadores
     indicadores_fofisp = pd.read_csv('data/indicadores_fofisp.csv')
     indicadores_fofisp['Categoría'] = indicadores_fofisp['Categoría'].fillna('')
     indicadores_fofisp['Ponderación_categoría'] = indicadores_fofisp['Ponderación_categoría'].fillna(0)
@@ -165,27 +164,26 @@ else:
     # tabla formateada
     indicadores = (
         GT(indicadores_fofisp)
+        .cols_hide(columns='Monto_asignado')
         .tab_stub()
         .tab_header(
-            title=md('**Indicadores de Distribución**'),
-            subtitle='Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública'
+            title=md('Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública'),
+            subtitle=md('## Indicadores de Distribución')
             )
-        .fmt_currency(columns=['Monto_asignado'])
         .fmt_percent(columns=['Ponderación_categoría','Ponderación_indicador'], decimals=1).sub_zero(zero_text=md(''))
         .cols_width(cases={
-                "Categoría": "23%",
-                "Ponderación_categoría": "15%",
-                "Indicador": "27%",
-                "Ponderación_indicador": "15%",
-                "Monto_asignado": "20%"
+                "Categoría": "26%",
+                "Ponderación_categoría": "22%",
+                "Indicador": "30%",
+                "Ponderación_indicador": "22%",
                 })
         .cols_label(
             Categoría = md('**Categoría**'),
             Ponderación_categoría = md('**Ponderación categoría**'),
             Indicador = md('**Indicador**'),
             Ponderación_indicador = md('**Ponderación indicador**'),
-            Monto_asignado = md('**Monto asignado**')
         )
+        .cols_align(align='center', columns=['Ponderación_categoría','Ponderación_indicador'])
         .tab_options(
             container_width="100%",
             container_height="100%",
@@ -209,19 +207,22 @@ else:
         # header
         st.subheader('1. Introducción')
         st.markdown('''
-
-        A continuación se enlistan los indicadores subyacentes para la asignación del **Fondo para el 
-        Fortalecimiento de las Instituciones de Seguridad Pública** (FOFISP) **2026**.
-
-        ''')
+        <div style="text-align: justify;">
+        A continuación se enlistan los indicadores subyacentes para la asignación del <b>Fondo para el Fortalecimiento
+        de las Instituciones de Seguridad Pública</b> (FOFISP) <b>2026</b>.
+        </div>''',
+         unsafe_allow_html=True)
 
         st.html(indicadores)
         st.caption('Tabla 1. Indicadores utilizados para la asignación de fondos y ponderaciones predeterminadas.')
 
         st.markdown('''
         ##### ¿Cómo funciona esta aplicación?
-        
-        Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un Índice de Asignación de Seguridad Pública Normalizado.
+        ''')
+
+        st.markdown('''
+        <div style="text-align: justify;">
+        Esta aplicación interactiva sirve como una herramienta de análisis de escenarios que utiliza un <i>Índice de Asignación de Seguridad Pública Normalizado</i>.
         
         El corazón de la aplicación es la ponderación.
         Al usar los controles deslizantes en la barra lateral, se pueden simular diferentes prioridades de política pública.
@@ -230,7 +231,10 @@ else:
         supuestos de ponderación impactan la clasificación final de las Entidades Federativas.
         Esto proporciona una base objetiva para discutir y justificar las decisiones de asignación de fondos,
         asegurando que los recursos se dirijan donde son más necesarios o donde generarán el mayor impacto.
-
+        </div>''',
+        unsafe_allow_html=True)
+        
+        st.markdown('''
         ##### Referencias
 
         [Fondo para el Fortalecimiento de las Instituciones de Seguridad Pública (FOFISP) 2025](https://www.gob.mx/sesnsp/acciones-y-programas/fondo-para-el-fortalecimiento-de-las-instituciones-de-seguridad-publica-fofisp?state=published)
@@ -314,15 +318,14 @@ else:
                     })
                 )
 
-        
-
-        # --- Cálculo y Visualización ---
-        # Calcular el índice
-        df_results = calculate_index(fofisp_datos_entrada, weights)
-
         st.dataframe(fofisp_datos_entrada2, use_container_width=True)
         st.caption('Tabla 2. Variables utilizadas en el modelo para la asignación de fondos.')
 
+
+                # --- Cálculo y Visualización ---
+        # Calcular el índice
+        df_results = calculate_index(fofisp_datos_entrada, weights)
+        
         # Mostrar la tabla final de resultados
         st.subheader("2.2 Resultados")
         # reckon end allocated amount
@@ -741,11 +744,13 @@ else:
         
         st.subheader('3.5 Repartición del Remanente')
         st.markdown('''
+        <div style="text-align: justify;">
         Se aplican bandas del ±10% respecto al importe asignado del ejercicio anterior inmediato y se obtiene 
         el total de importe sobrante y faltante aplicando estas bandas.
         Posteriormente, se reparte este remanente entre las diversas Entidades Federativas para que ninguna rebase
         las bandas del ±10%.
-        ''')
+        </div>''',
+        unsafe_allow_html=True)
 
         st.markdown('---')
         st.markdown('*© Dirección General de Planeación*')

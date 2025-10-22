@@ -1,0 +1,20 @@
+Categoría,Ponderación_categoría,Subcategoría,Indicador,Ponderación_indicador,Ponderación_individual,Monto_asignado
+Características Estatales,0.25,Población,Población en la Entidad Federativa,0.5,0.125,1230050878
+,,Carga Delictiva,Incidencia Delictiva,0.3,0.075,738030526.8
+,,Victimización,Victimización,0.2,0.05,492020351.2
+Desarrollo Institucional,0.15,"Capacidades 
+Institucionales",Sobrepoblación penitenciaria,0.45,0.0675,664227474.1
+,,,Impartición de Justicia,0.35,0.0525,516621368.8
+,,,Servicios Médicos Forenses,0.2,0.03,295212210.7
+,0.35,Cumplimiento,Tasa Policial,0.2,0.07,688828491.7
+,,,Dignificación Salarial,0.15,0.0525,516621368.8
+,,,Instituciones de Profesionalización,0.15,0.0525,516621368.8
+,,,Aprobación en Control de Confianza,0.125,0.04375,430517807.3
+,,,Disponibilidad de cámaras,0.125,0.04375,430517807.3
+,,,Disponibilidad de lectores de identificación vehicular,0.125,0.04375,430517807.3
+,,,Porcentaje de abandono de llamadas al 911,0.125,0.04375,430517807.3
+,0.15,Resultados,Variación de Incidencia Delictiva,0.5,0.075,738030526.8
+,,,Desempeño Policial,0.25,0.0375,369015263.4
+,,,Confianza Policial,0.25,0.0375,369015263.4
+Ejercicio de los Recursos,0.05,Eficiencia,Eficiencia presupuestal,1,0.05,492020351.2
+,0.05,Monto Base,Monto Base,1,0.05,492020351.2
