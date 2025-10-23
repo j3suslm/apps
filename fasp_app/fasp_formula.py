@@ -190,7 +190,6 @@ weights = {
     'Desempeño policial': w_desemp_pol,
     'Confianza policial': w_conf_pol,
     'Eficiencia presupuestal': w_ef_presupuestal,
-    'Base': w_base,
 }
 
 
@@ -211,31 +210,30 @@ else:
     # tabla formateada
     indicadores = (
         GT(indicadores_fasp)
-        .cols_hide(columns='Monto_asignado')
         .tab_stub()
         .tab_header(
             title=md('Fondo de Aportaciones para la Seguridad Pública'),
             subtitle=md('## Indicadores de Distribución')
             )
-        .fmt_percent(columns=['Ponderación_categoría','Ponderación_indicador'], decimals=1).sub_zero(zero_text=md(''))
+        .fmt_percent(columns=['Ponderación_categoría','Ponderación_subcategoría','Ponderación_indicador',], decimals=1).sub_zero(zero_text=md(''))
         .cols_width(cases={
                 "Categoría": "15%",
                 "Ponderación_categoría": "10%",
                 "Subcategoría": "25%",
                 "Indicador": "35%",
+                "Ponderación_subcategoría": "10%",
                 "Ponderación_indicador": "10%",
-                "Ponderación_individual": "10%",
                 })
         .cols_label(
             Categoría = md('**Categoría**'),
             Subcategoría = md('**Subcategoría**'),
             Ponderación_categoría = md('**Ponderación categoría**'),
             Indicador = md('**Indicador**'),
+            Ponderación_subcategoría = md('**Ponderación subcategoría**'),
             Ponderación_indicador = md('**Ponderación indicador**'),
-            Ponderación_individual = md('**Ponderación individual**'),
         )
         .cols_align(align='center',
-            columns=['Ponderación_categoría','Ponderación_indicador','Ponderación_individual'])
+            columns=['Ponderación_categoría','Ponderación_subcategoría','Ponderación_indicador'])
         .tab_options(
             container_width="100%",
             container_height="100%",
@@ -304,7 +302,8 @@ else:
         ''')
         st.subheader("2.1 Datos de Entrada")
 
-        base = 1
+        base = presupuesto * 0.06
+        
 
         # --- Funciones de Cálculo del Índice ---
         def min_max_normalize(series, direction='positive'):
@@ -328,57 +327,216 @@ else:
                 raise ValueError("La dirección debe ser 'positiva' o 'negativa'")
 
         def calculate_index(df, weights):
-            """Calcula el Índice Compuesto Normalizado."""
-
-            # 1. Normalización de Variables
-            # variables positivas
-            df['Pob_norm'] = min_max_normalize(df['Pob'], direction='positive')
-            df['Inc_del_norm'] = min_max_normalize(df['Inc_del'], direction='positive')
-            df['Var_inc_del_norm'] = min_max_normalize(df['Var_inc_del'], direction='positive')
-            df['Victim_norm'] = min_max_normalize(df['Victim'], direction='positive')
-            df['Pob_penitenciaria_norm'] = min_max_normalize(df['Pob_penitenciaria'], direction='positive')
-            df['Imp_justicia_norm'] = min_max_normalize(df['Imp_justicia'], direction='positive')
-            df['Servs_forenses_norm'] = min_max_normalize(df['Servs_forenses'], direction='positive')
-            df['Edo_fzanorm'] = min_max_normalize(df['Edo_fza'], direction='positive')
-            df['Dig_salarial_norm'] = min_max_normalize(df['Dig_salarial'], direction='positive')
-            df['Profesionalizacion_norm'] = min_max_normalize(df['Profesionalizacion'], direction='positive')
-            df['Ctrl_confianza_norm'] = min_max_normalize(df['Ctrl_confianza'], direction='positive')
-            df['Desemp_pol_norm'] = min_max_normalize(df['Desemp_pol'], direction='positive')
-            df['Conf_pol_norm'] = min_max_normalize(df['Conf_pol'], direction='positive')
-            df['Eficiencia_presupuestal_norm'] = min_max_normalize(df['Eficiencia_presupuestal'], direction='positive')
-
-            # variables negativas (menos es mejor, por lo tanto, se invierte)
+            """Calcula el Índice Compuesto Normalizado con 16 variables."""
             
-
+            # Define Variable Directions (High Value = Good/Positive vs. High Value = Bad/Negative)
+            # The direction determines if normalization is standard or inverted.
+            directions = {
+                'Pob': 'positive',               # More population = Higher score
+                'Tasa_policial': 'positive',     # Higher police rate (more officers) = Higher score
+                'Dig_salarial': 'positive',      # Better salary dignification = Higher score
+                'Profesionalizacion': 'positive',# More professionalization = Higher score
+                'Ctrl_conf': 'positive',         # More control of confidence = Higher score
+                'Disp_camaras': 'positive',      # More cameras = Higher score
+                'Disp_lectores_veh': 'positive', # More vehicle readers = Higher score
+                'Cump_presup': 'positive',       # Better budget compliance = Higher score
+                'Proc_justicia': 'positive',     # Better justice process = Higher score
+                'Servs_forenses': 'positive',    # Better forensic services = Higher score
+                'Eficiencia_procesal': 'positive',# More procedural efficiency = Higher score
+                
+                'Var_inc_del': 'negative',        # Higher crime incidence variation (worse) = Lower score
+                'Tasa_abandono_llamadas911': 'negative', # Higher abandonment rate = Lower score
+                'Tasa_abandono_llamadas089': 'negative', # Higher abandonment rate = Lower score
+                'Sobrepob_penitenciaria': 'negative', # More overcrowding = Lower score
+            }
+            
+            # 1. Normalización de Variables
+            normalized_columns = []
+            for col, direction in directions.items():
+                norm_col_name = f'{col}_norm'
+                df[norm_col_name] = min_max_normalize(df[col], direction=direction)
+                normalized_columns.append(norm_col_name)
 
             # 2. Aplicación de Ponderadores
-            df['Indice Normalizado'] = (
-                df['Pob_norm'] * weights['Población'] +
-                df['Tasa_policial_norm'] * weights['Tasa_policial'] +
-                df['Var_incidencia_del_norm'] * weights['Var_incidencia_del'] +
-                df['Academias_norm'] * weights['Academias']
-            )
+            # Create the index calculation dynamically based on the available weights
+            index_calculation = 0
+            for col in weights:
+                norm_col_name = f'{col}_norm'
+                if norm_col_name in df.columns:
+                    index_calculation += df[norm_col_name] * weights[col]
 
-            # El índice final también se normaliza a un rango de 0 a 1 para asegurar comparabilidad
+            df['Indice Normalizado'] = index_calculation
+
+            # 3. Normalización Final (Corrimiento)
             df['Indice Final (0-1)'] = min_max_normalize(df['Indice Normalizado'], direction='positive')
-            epsilon = 0.05
+            epsilon = 0.01
             df['Indice Final (Corrimiento)'] = (df['Indice Final (0-1)'] * (1 - epsilon)) + epsilon
 
             return df
 
-        # change index to start at 1, must specify last limit
+
+        # Replicating original index setting and Var_incidencia_del multiplication
+        # Assuming 'data' contains the new columns and 'Entidad Federativa'
         fasp_datos_entrada = data.copy()
-        data.index = pd.RangeIndex(start=1, stop=33, step=1)
-        data['Var_incidencia_del'] = data['Var_incidencia_del']*100
-        fofisp_datos_entrada2 = (
-            data
-                .style.format({
-                    'Población': '{:,.2f}',
-                    'Var_incidencia_del':'{:.2f}%',
-                    'Tasa_policial':'{:.2f}',
-                    'Asignacion_2025': '${:,.2f}',
-                    })
+        data.index = pd.RangeIndex(start=1, stop=len(data) + 1, step=1) 
+        data['Var_inc_del'] = data['Var_inc_del'] * 100 # Adjusting column name to new list
+
+        #fasp_datos_entrada2 = (
+        #    data
+        #        .style.format({
+        #            'Pob': '{:,.2f}',
+        #            'Var_inc_del':'{:.2f}%',
+        #            'Tasa_policial':'{:.2f}',
+        #            'Asignacion_2025': '${:,.2f}',
+        #            })
+        #        )
+
+        st.dataframe(data, use_container_width=True)
+        st.caption('Tabla 2. Variables utilizadas en el modelo para la asignación de fondos.')
+
+        # Calculate the index
+        df_results = calculate_index(fasp_datos_entrada, weights)
+
+        # 1. Allocation Calculation
+        total_indice = df_results['Indice Final (Corrimiento)'].sum()
+        df_results['Reparto'] = df_results['Indice Final (Corrimiento)'] / total_indice
+        df_results['Asignacion_2026'] = df_results['Reparto'] * presupuesto
+        df_results['Var%'] = df_results['Asignacion_2026'] / df_results['Asignacion_2025'] - 1
+
+        # 2. Rebalanceo (Applying ±10% band)
+        df_results['Min'] = df_results['Asignacion_2025'] * (1 - lower_limit)
+        df_results['Max'] = df_results['Asignacion_2025'] * (1 + upper_limit)
+
+        df_results['Superavit'] = np.where(df_results['Asignacion_2026'] > df_results['Max'],
+                                        df_results['Asignacion_2026'] - df_results['Max'],
+                                        0)
+
+        df_results['Deficit'] = np.where(df_results['Asignacion_2026'] < df_results['Min'],
+                                        df_results['Min'] - df_results['Asignacion_2026'],
+                                        0)
+
+        total_superavit = df_results['Superavit'].sum()
+        total_deficit = df_results['Deficit'].sum()
+        remanente = total_superavit - total_deficit
+
+        # Determine Interim Allocation: Apply the caps and floors
+        df_results['Reasignacion'] = df_results['Asignacion_2026'].clip(lower=df_results['Min'], upper=df_results['Max'])
+        df_results['Elegibles'] = np.where(df_results['Reasignacion'] < df_results['Max'],
+                                            1,
+                                            0)
+        total_basis = df_results['Elegibles'].sum()
+
+        if total_basis > 0:
+            df_results['Reparto_neto'] = (df_results['Elegibles'] / total_basis) * remanente
+        else:
+            df_results['Reparto_neto'] = 0
+
+        # Calculate Final Adjusted Allocation
+        df_results['Asignacion_ajustada'] = df_results['Reasignacion'] + df_results['Reparto_neto']
+        df_results['Var%_ajustada'] = (df_results['Asignacion_ajustada'] - df_results['Asignacion_2025']) / df_results['Asignacion_2025']
+
+        # 3. Plotly Figure 2 (Replicating the target structure)
+        # Gráfico de barras de reasignacion de remanente 2026 vs 2025
+        fig2 = go.Figure(data=[
+            go.Bar(
+                name='Ejercicio 2025',
+                x=df_results['Entidad Federativa'],
+                y=df_results['Asignacion_2025'],
+                marker_color='#bc955c',
+                # ADDED: customdata for the hover template
+                customdata=df_results[['Entidad Federativa', 'Var%_ajustada']],
+                hovertemplate=(
+                    # Template to show Entidad_Federativa (x) and Var%_ajustada (customdata[1])
+                    'Entidad Federativa: %{x}<br>'
+                    'Var%_ajustada: %{customdata[1]:.2%}<extra></extra>' # .2% for two decimal percentage
                 )
+            ),
+            go.Bar(
+                name='Ejercicio 2026',
+                x=df_results['Entidad Federativa'],
+                y=df_results['Asignacion_ajustada'],
+                marker_color='#691c32',
+                # ADDED: customdata for the hover template (must be the same for both bars)
+                customdata=df_results[['Entidad Federativa', 'Var%_ajustada']],
+                hovertemplate=(
+                    # Template to show Entidad_Federativa (x) and Var%_ajustada (customdata[1])
+                    'Entidad Federativa: %{x}<br>'
+                    'Var%_ajustada: %{customdata[1]:.2%}<extra></extra>' # .2% for two decimal percentage
+                )
+            ),
+        ])
+
+        # Update layout to group bars
+        fig2.update_traces(
+            textposition='outside',
+            opacity=0.9,
+            marker_line_color='#6f7271',
+            marker_line_width=1.2,
+            # NOTE: texttemplate is removed here as it was removed in the original fig2, but
+            # it was present in fig1. I'll re-add it based on your original fig2 code.
+            texttemplate='$%{y:,.2f}', # Changed to %{y} since text=y is not explicitly set
+            textfont_size=20,
+            )
+
+        # Dynamically create the weight-based title (example for 3 variables)
+        weight_title = ", ".join([f"{col}={w*100:.0f}%" for col, w in list(weights.items())[:4]]) + "..." # Showing only first 4 weights
+
+        fig2.update_layout(
+            barmode='group',
+            title=f"Reasignación de Fondos por Entidad Federativa después de Remanente de la banda de ±10% - Variables: {weight_title}",
+            template='ggplot2',
+            uniformtext_minsize=8, uniformtext_mode='hide',
+            hovermode="x unified",
+            autosize=True,
+            height=600,
+            xaxis_title='',
+            yaxis_title='Asignacion 2026',
+            hoverlabel=dict(
+                bgcolor="#fff",
+                font_size=16,
+                font_family="Noto Sans",
+                )
+            )
+
+        fig2.update_xaxes(
+            showgrid=True,
+            title_font=dict(size=18, family='Noto Sans', color='#691c32'),
+            tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),
+            tickangle=-75,
+            )
+
+        fig2.update_yaxes(
+            tickprefix="$",
+            tickformat=',.0f',
+            showgrid=True,
+            title_font=dict(size=16, family='Noto Sans', color='#28282b'),
+            tickfont=dict(size=15, family='Noto Sans', color='#4f4f4f'),
+            tickangle=0,
+            )
+
+        st.plotly_chart(fig2, use_container_width=True)
+
+        
+        st.markdown('---')
+        st.markdown('*© Dirección General de Planeación*')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

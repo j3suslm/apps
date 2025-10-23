@@ -297,7 +297,7 @@ else:
 
             # El índice final también se normaliza a un rango de 0 a 1 para asegurar comparabilidad
             df['Indice Final (0-1)'] = min_max_normalize(df['Indice Normalizado'], direction='positive')
-            epsilon = 0.05
+            epsilon = 0.01
             df['Indice Final (Corrimiento)'] = (df['Indice Final (0-1)'] * (1 - epsilon)) + epsilon
 
             return df
@@ -620,9 +620,17 @@ else:
         # grafico2
         # Gráfico de barras de reasignacion de remanente 2026 vs 2025
         fig2 = go.Figure(data=[
-            go.Bar(name='Ejercicio 2025', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_2025'], marker_color='#bc955c',),
-            go.Bar(name='Ejercicio 2026', x=df_results['Entidad_Federativa'], y=df_results['Asignacion_ajustada'], marker_color='#691c32',)
-        ])
+            go.Bar(name='Ejercicio 2025',
+                x=df_results['Entidad_Federativa'],
+                y=df_results['Asignacion_2025'],
+                marker_color='#bc955c',
+                ),
+            go.Bar(name='Ejercicio 2026',
+                x=df_results['Entidad_Federativa'],
+                y=df_results['Asignacion_ajustada'],
+                marker_color='#691c32',
+                ),
+            ])
 
         # Update layout to group bars
         fig2.update_traces(
