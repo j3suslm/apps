@@ -344,7 +344,7 @@ else:
             # The final index is also normalized to a 0-1 range for comparability
             df['Indice Final (0-1)'] = min_max_normalize(df['Indice Normalizado'], direction='positive')
             # small enough not to alter allocation
-            epsilon = 0.01
+            epsilon = 0.0250174550599477
             # Apply Epsilon correction to prevent zero shares
             df['Indice Final (Corrimiento)'] = (df['Indice Final (0-1)'] * (1 - epsilon)) + epsilon
 
