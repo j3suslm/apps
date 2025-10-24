@@ -791,7 +791,11 @@ else:
         st.caption('Tabla 3. Contribución monetaria de cada indicador a la asignación bruta por Entidad Federativa.')
 
 
-with tab4:
+    with tab3:
+        st.markdown('## 3. Nota metodológica')
+    
+    
+    with tab4:
 
         st.header('4. Nota técnica')
         st.markdown("""
