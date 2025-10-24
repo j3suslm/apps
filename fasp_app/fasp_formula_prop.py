@@ -102,12 +102,12 @@ with st.sidebar.expander('Bandas'):
     # presupuesto estimado widget
     upper_limit = st.number_input(
         'Banda superior',
-        value=0.02, key='Limite superior',
+        value=0.03, key='Limite superior',
     )
     # presupuesto estimado widget
     lower_limit = st.number_input(
         'Banda inferior',
-        value=0.08, key='Limite inferior',
+        value=0.10, key='Limite inferior',
     )
 
 
@@ -332,7 +332,7 @@ else:
                 'Pob': 'positive', 'Tasa_policial': 'positive', 'Profesionalizacion': 'positive', 
                 'Ctrl_conf': 'positive', 'Disp_camaras': 'positive', 'Disp_lectores_veh': 'positive',
                 'Cump_presup': 'positive', 'Servs_forenses': 'positive', 'Eficiencia_procesal': 'positive',
-                'Var_inc_del': 'negative', 'Dig_salarial': 'positive', 
+                'Var_inc_del': 'positive', 'Dig_salarial': 'positive', 
                 'Tasa_abandono_llamadas': 'negative', 'Sobrepob_penitenciaria': 'negative', 
                 'Proc_justicia': 'negative'
             }
