@@ -102,12 +102,12 @@ with st.sidebar.expander('Bandas'):
     # presupuesto estimado widget
     upper_limit = st.number_input(
         'Banda superior',
-        value=0.1, key='Limite superior',
+        value=0.02, key='Limite superior',
     )
     # presupuesto estimado widget
     lower_limit = st.number_input(
         'Banda inferior',
-        value=0.1, key='Limite inferior',
+        value=0.08, key='Limite inferior',
     )
 
 
