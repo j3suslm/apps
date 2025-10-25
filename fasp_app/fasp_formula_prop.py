@@ -113,35 +113,50 @@ with st.sidebar.expander('Bandas'):
 
 
 # Sliders for weights
-with st.sidebar.expander('Ponderadores'):
+with st.sidebar.expander('Características Estatales'):
     # Categoria 1: categorias estatales
-    w_pob = create_weight_input('Población (Alto=Bueno)', 0.3)
-    w_var_inc_del = create_weight_input('Var incidencia delictiva (Alto=Bueno)', 0.18)
-    w_base = create_weight_input('Monto base', 0.12)
+    w_pob = create_weight_input('Población (Alto=Bueno)', 0.075)
+    w_var_inc_del = create_weight_input('Var incidencia delictiva (Alto=Bueno)', 0.21)
+    w_base = create_weight_input('Monto base', 0.015)
 
-    # Categoria 2: desempeño institucional
-    w_tasa_policial = create_weight_input('Tasa policial (Alto=Bueno)', 0.048)
-    w_dig_salarial = create_weight_input('Dig salarial (Alto=Bueno)', 0.048)
-    w_profesionalizacion = create_weight_input('Profesionalización (Alto=Bueno)', 0.036)
-    w_ctrl_conf = create_weight_input('Ctrl confianza (Alto=Bueno)', 0.024)
-    w_disp_camaras = create_weight_input('Disp cámaras (Alto=Bueno)', 0.036)
-    w_disp_lectores_veh = create_weight_input('Disp lectores veh. (Alto=Bueno)', 0.024)
-    w_abandono_llamadas = create_weight_input('Tasa abandono llamadas (Alto=Malo)', 0.024)
-    w_cump_presup = create_weight_input('Cump. presup. (Alto=Bueno)', 0.01)
-    w_sobrepob = create_weight_input('Sobrepob. penitenciaria (Alto=Malo)', 0.015) ### checar
-    w_proc_justicia = create_weight_input('Proc justicia (Alto=Malo)', 0.015)
-    w_servs_forenses = create_weight_input('Servs forenses (Alto=Bueno)', 0.075)
-    w_eficiencia_procesal = create_weight_input('Eficiencia procesal (Alto=Bueno)', 0.045)
-    
-    # Total sum check and adjustment
-    total_sum = (
-        w_pob + w_tasa_policial + w_var_inc_del + w_disp_camaras + w_disp_lectores_veh +
-        w_abandono_llamadas + w_dig_salarial + w_profesionalizacion +
-        w_ctrl_conf + w_sobrepob + w_proc_justicia + w_servs_forenses + 
-        w_eficiencia_procesal + w_cump_presup + w_base
+    caracteristicas_sum = (
+        w_pob + w_var_inc_del + w_base
     )
-    formatted_sum = f"{total_sum:.4f}"
-    st.markdown(f'**Suma:** {formatted_sum}')
+    formatted_caracteristicas = f"{caracteristicas_sum:.4f}"
+    st.markdown(f'**Suma:** {formatted_caracteristicas}')
+
+with st.sidebar.expander('Desempeño Institucional'):
+    # Categoria 2: desempeño institucional
+    w_tasa_policial = create_weight_input('Tasa policial (Alto=Bueno)', 0.045)
+    w_dig_salarial = create_weight_input('Dig salarial (Alto=Bueno)', 0.045)
+    w_profesionalizacion = create_weight_input('Profesionalización (Alto=Bueno)', 0.135)
+    w_ctrl_conf = create_weight_input('Ctrl confianza (Alto=Bueno)', 0.0225)
+    w_disp_camaras = create_weight_input('Disp cámaras (Alto=Bueno)', 0.078)
+    w_disp_lectores_veh = create_weight_input('Disp lectores veh. (Alto=Bueno)', 0.078)
+    w_abandono_llamadas = create_weight_input('Tasa abandono llamadas (Alto=Malo)', 0.045)
+    w_cump_presup = create_weight_input('Cump. presup. (Alto=Bueno)', 0.005)
+    w_sobrepob = create_weight_input('Sobrepob. penitenciaria (Alto=Malo)', 0.0381)
+    w_proc_justicia = create_weight_input('Proc justicia (Alto=Malo)', 0.0858)
+    w_servs_forenses = create_weight_input('Servs forenses (Alto=Bueno)', 0.0368)
+    w_eficiencia_procesal = create_weight_input('Eficiencia procesal (Alto=Bueno)', 0.0858)
+
+    institucionales_sum = (
+        w_tasa_policial + w_dig_salarial + w_profesionalizacion + w_ctrl_conf + w_disp_camaras +
+        w_disp_lectores_veh + w_abandono_llamadas + + w_cump_presup + w_sobrepob +
+        w_proc_justicia + w_servs_forenses + w_eficiencia_procesal
+    )
+    formatted_institucionales = f"{institucionales_sum:.4f}"
+    st.markdown(f'**Suma:** {formatted_institucionales}')
+
+# Total sum check and adjustment
+total_sum = (
+    w_pob + w_tasa_policial + w_var_inc_del + w_disp_camaras + w_disp_lectores_veh +
+    w_abandono_llamadas + w_dig_salarial + w_profesionalizacion +
+    w_ctrl_conf + w_sobrepob + w_proc_justicia + w_servs_forenses + 
+    w_eficiencia_procesal + w_cump_presup + w_base
+)
+formatted_sum = f"{total_sum:.4f}"
+st.sidebar.markdown(f'**Suma:** {formatted_sum}')
 
 
 # Store all weights in a dictionary
@@ -767,11 +782,10 @@ else:
         
 
         # --- NUEVA TABLA: Contribución Monetaria por Variable ---
-        st.subheader("2.1.1 Contribución Monetaria por Indicador")
+        st.subheader("2.4 Contribución Monetaria por Indicador")
         st.markdown(f'''
             La siguiente tabla desglosa la contribución monetaria de cada uno de los 15 indicadores
             a la asignación bruta (sin rebalanceo) del **Fondo Estimado de {presupuesto_formateado}**.
-            Note que la suma de las filas es igual a la Asignación Bruta.
         ''')
 
         contribution_cols = [f'Monto_{col}' for col in weights.keys() if col != 'Monto base'] + ['Monto_Base']
@@ -788,13 +802,46 @@ else:
             hide_index=True,
             use_container_width=True
         )
-        st.caption('Tabla 3. Contribución monetaria de cada indicador a la asignación bruta por Entidad Federativa.')
+        st.caption('Tabla 6. Contribución monetaria de cada indicador a la asignación bruta por Entidad Federativa.')
 
 
     with tab3:
         st.markdown('## 3. Nota metodológica')
-    
-    
+
+        st.markdown('''    
+        #### 1. Estandarización de Variables (Proporciones)
+
+        Primero, calculamos la proporción que representa cada estado en cada variable:
+
+        - Proporción de Población (Pi​):
+        
+            `Pi​ = Población del Estado i​ / Población Total`
+
+        - Proporción de Delitos (Di​):
+        
+            `Di ​= Delitos del Estado i​ / Total de Delitos`
+
+        #### 2. Cálculo del Factor de Asignación Ponderado
+
+        Luego, combina estas dos proporciones para cada estado (i) usando las ponderaciones (WP​=0.60 y WD​=0.40).
+
+        - Factor Ponderado (Fi​):
+        
+            `Fi ​= (Pi​*0.60)+(Di​*0.40)`
+
+        El resultado Fi​ es el porcentaje total del fondo que le corresponde al Estado i. 
+        
+        `Nota: La suma de todos los Fi​ para todos los estados debe ser igual a 1.00 (100%).`
+
+        #### 3. Asignación Final del Fondo
+
+        Finalmente, multiplica el Factor Ponderado por el Fondo Total (FT):
+
+        - Asignación al Estado i:
+        
+            `A_i​ = Fi * FT`
+    ''')
+
     with tab4:
 
         st.header('4. Nota técnica')
