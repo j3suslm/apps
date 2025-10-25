@@ -107,7 +107,7 @@ with st.sidebar.expander('Bandas'):
     # presupuesto estimado widget
     lower_limit = st.number_input(
         'Banda inferior',
-        value=0.10, key='Limite inferior',
+        value=0.08, key='Limite inferior',
     )
 
 
@@ -570,7 +570,7 @@ else:
 
         st.subheader('2.3 Rebalanceo de remanente')
         st.markdown('''
-        Se estableció una banda de $\pm$10% para el importe asignado 2026 en relación al asignado 2025.
+        Se estableció una banda de control para el importe asignado 2026 en relación al asignado 2025.
         
         A continuación, podemos observar la aplicación de estas bandas a las Entidades Federativas en la asignación 2026.
         ''')
@@ -638,10 +638,10 @@ else:
         )
 
         st.dataframe(df_bandas, hide_index=True)
-        st.caption('Tabla 3. Entidades Federativas por encima/debajo de la banda de $\pm$10%')
+        st.caption('Tabla 3. Entidades Federativas por encima/debajo de la banda de control')
 
         st.markdown('''
-        En la siguiente tabla, se resume el superavit y deficit totales, respecto a la banda de 10% y el remanente a repartir.
+        En la siguiente tabla, se resume el superavit y deficit totales, respecto a la banda de control y el remanente a repartir.
         ''')
 
         
@@ -705,7 +705,7 @@ else:
         st.dataframe(df_reasignacion2, hide_index=True)
         # validar que la suma de reasignacion ajustada sea igual al presupuesto inicial 2026
         #st.dataframe(pd.Series(df_results['Asignacion_ajustada'].sum()))
-        st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de ±10%')
+        st.caption('Tabla 5. Reasignación de Remanente por Entidad Federativa con banda de control')
 
         st.dataframe(df_results[['Asignacion_ajustada']].sum(), width=200, hide_index=True,
             column_config={
@@ -743,7 +743,7 @@ else:
 
         fig2.update_layout(
             barmode='group',
-            title=f"Reasignación de Fondos por Entidad Federativa después de Remanente de la banda de ±10%",
+            title=f"Reasignación de Fondos por Entidad Federativa después de Remanente de la banda de control",
             template='ggplot2',
             uniformtext_minsize=8, uniformtext_mode='hide',
             hovermode="x unified",
@@ -777,9 +777,6 @@ else:
         st.plotly_chart(fig2, use_container_width=True)
 
         
-        st.markdown('---')
-        st.markdown('*© Dirección General de Planeación*')
-        
 
         # --- NUEVA TABLA: Contribución Monetaria por Variable ---
         st.subheader("2.4 Contribución Monetaria por Indicador")
@@ -803,6 +800,9 @@ else:
             use_container_width=True
         )
         st.caption('Tabla 6. Contribución monetaria de cada indicador a la asignación bruta por Entidad Federativa.')
+
+        st.markdown('---')
+        st.markdown('*© Dirección General de Planeación*')
 
 
     with tab3:
